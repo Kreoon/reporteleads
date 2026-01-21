@@ -30,7 +30,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const WEBHOOK_URL = "https://n8n.grupoeffi.com/webhook/agregar-pauta";
+const WEBHOOK_URL = "https://n8n.grupoeffi.com/webhook-test/agregar-pauta";
 
 const COUNTRIES = [
   { code: "EC", name: "Ecuador" },
