@@ -11,11 +11,16 @@ import {
 interface MetricsTableProps {
   data: Array<{
     fecha: string;
+    fechaDisplay?: string;
     leads: number;
     inversion: number;
     cpl: number;
   }>;
 }
+
+// Helper to get display-friendly date
+const getDisplayDate = (row: { fecha: string; fechaDisplay?: string }) => 
+  row.fechaDisplay || row.fecha;
 
 export function MetricsTable({ data }: MetricsTableProps) {
   return (
@@ -42,7 +47,7 @@ export function MetricsTable({ data }: MetricsTableProps) {
                   key={index} 
                   className="border-border hover:bg-secondary/50 transition-colors"
                 >
-                  <TableCell className="font-medium text-foreground">{row.fecha || '-'}</TableCell>
+                  <TableCell className="font-medium text-foreground">{getDisplayDate(row) || '-'}</TableCell>
                   <TableCell className="text-right text-primary font-semibold">{row.leads ?? 0}</TableCell>
                   <TableCell className="text-right text-foreground">${(row.inversion ?? 0).toLocaleString()}</TableCell>
                   <TableCell className="text-right text-muted-foreground">${(row.cpl ?? 0).toFixed(2)}</TableCell>

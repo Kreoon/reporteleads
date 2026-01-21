@@ -4,11 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface LeadsChartProps {
   data: Array<{
     fecha: string;
+    fechaDisplay?: string;
     leads: number;
   }>;
 }
 
+// Helper to get display-friendly date
+const getDisplayDate = (row: { fecha: string; fechaDisplay?: string }) => 
+  row.fechaDisplay || row.fecha;
+
 export function LeadsChart({ data }: LeadsChartProps) {
+  // Transform data to use display-friendly dates
+  const chartData = data.map(row => ({
+    ...row,
+    displayFecha: getDisplayDate(row),
+  }));
+
   return (
     <Card className="glass-card">
       <CardHeader>
@@ -19,7 +30,7 @@ export function LeadsChart({ data }: LeadsChartProps) {
       <CardContent>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.4} />
@@ -28,7 +39,7 @@ export function LeadsChart({ data }: LeadsChartProps) {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(222, 30%, 18%)" />
               <XAxis 
-                dataKey="fecha" 
+                dataKey="displayFecha" 
                 stroke="hsl(215, 20%, 55%)" 
                 fontSize={12}
                 tickLine={false}
