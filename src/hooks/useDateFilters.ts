@@ -89,9 +89,12 @@ export function useDateFilters(): UseDateFiltersReturn {
 
   /**
    * Check if a date passes all active filters
+   * Returns true if no filters are active OR if date matches all active filters
    */
   const filterDate = useCallback((date: Date | null): boolean => {
-    // No date = exclude from filtered results
+    // If no date provided and filters are active, exclude
+    // If no date provided and NO filters active, this shouldn't even be called
+    // (the hasActiveFilters check in Index.tsx handles that)
     if (!date) return false;
 
     // Date range filter
