@@ -9,4 +9,5 @@ export interface CommercialRow {
   cuentasDescartadas: number;
   montoTotal: number;
   fecha?: string; // Optional date field for filtering
+  createdAt?: string; // Fallback timestamp from API (ISO)
 }

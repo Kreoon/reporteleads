@@ -43,7 +43,9 @@ const parseFechaToDate = (fechaStr: string): Date | null => {
     if (slashParts.length === 3) {
       const day = parseInt(slashParts[0], 10);
       const month = parseInt(slashParts[1], 10) - 1;
-      const year = parseInt(slashParts[2], 10);
+      const rawYear = parseInt(slashParts[2], 10);
+      // Support 2-digit years like "21/01/26" coming from some webhooks
+      const year = rawYear < 100 ? 2000 + rawYear : rawYear;
       return new Date(year, month, day);
     }
     
@@ -51,6 +53,17 @@ const parseFechaToDate = (fechaStr: string): Date | null => {
   } catch {
     return null;
   }
+};
+
+// For commercials we prefer the business date (row.fecha). If it's missing/invalid, fallback to createdAt.
+const getCommercialDate = (row: { fecha?: string; createdAt?: string }): Date | null => {
+  const byFecha = row.fecha ? parseFechaToDate(row.fecha) : null;
+  if (byFecha) return byFecha;
+  if (row.createdAt) {
+    const d = new Date(row.createdAt);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
 };
 
 const Index = () => {
@@ -113,9 +126,8 @@ const Index = () => {
     // Filter by date range (if commercials have fecha field)
     if (dateRange.from || dateRange.to) {
       commercials = commercials.filter(row => {
-        if (!row.fecha) return true;
-        const rowDate = parseFechaToDate(row.fecha);
-        if (!rowDate) return true;
+        const rowDate = getCommercialDate(row);
+        if (!rowDate) return false;
         
         if (dateRange.from && dateRange.to) {
           return rowDate >= dateRange.from && rowDate <= dateRange.to;
@@ -131,9 +143,8 @@ const Index = () => {
     // Filter by year (if commercials have fecha field)
     if (selectedYear !== "all") {
       commercials = commercials.filter(row => {
-        if (!row.fecha) return false; // Exclude if no fecha when year filter is active
-        const rowDate = parseFechaToDate(row.fecha);
-        if (!rowDate) return false; // Exclude invalid dates
+        const rowDate = getCommercialDate(row);
+        if (!rowDate) return false;
         return String(rowDate.getFullYear()) === selectedYear;
       });
     }
@@ -141,9 +152,8 @@ const Index = () => {
     // Filter by month (if commercials have fecha field)
     if (selectedMonth !== "all") {
       commercials = commercials.filter(row => {
-        if (!row.fecha) return false; // Exclude if no fecha when month filter is active
-        const rowDate = parseFechaToDate(row.fecha);
-        if (!rowDate) return false; // Exclude invalid dates
+        const rowDate = getCommercialDate(row);
+        if (!rowDate) return false;
         const monthStr = String(rowDate.getMonth() + 1).padStart(2, '0');
         return monthStr === selectedMonth;
       });
