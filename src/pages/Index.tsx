@@ -9,7 +9,6 @@ import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
 import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
 import { useMetrics } from "@/hooks/useMetrics";
-import { useCommercials } from "@/hooks/useCommercials";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -23,22 +22,11 @@ const COUNTRIES = [
 
 const Index = () => {
   const { data, isLoading, lastUpdated, refetch } = useMetrics();
-  const { 
-    data: commercialsData, 
-    isLoading: commercialsLoading, 
-    refetch: refetchCommercials 
-  } = useCommercials();
-  
   const [selectedCountry, setSelectedCountry] = useState("EC");
-
-  // Handler to refresh both metrics and commercials
-  const handleRefresh = async () => {
-    await Promise.all([refetch(), refetchCommercials()]);
-  };
 
   // Filtrar datos por país seleccionado
   const filteredRows = data?.rows?.filter(row => row.pais === selectedCountry) || [];
-  const filteredCommercials = commercialsData?.rows?.filter(row => row.pais === selectedCountry) || [];
+  const filteredCommercials = data?.commercials?.filter(row => row.pais === selectedCountry) || [];
   
   // Calcular KPIs basados en datos filtrados
   const todayData = filteredRows[filteredRows.length - 1] || filteredRows[0];
@@ -53,8 +41,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header 
         lastUpdated={lastUpdated} 
-        isLoading={isLoading || commercialsLoading} 
-        onRefresh={handleRefresh} 
+        isLoading={isLoading} 
+        onRefresh={refetch} 
       />
       
       <main className="container mx-auto px-4 py-8">
@@ -73,7 +61,6 @@ const Index = () => {
             ))}
           </TabsList>
         </Tabs>
-
 
         {/* KPI Cards - Pauta */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -149,7 +136,7 @@ const Index = () => {
 
           {/* Commercials KPIs */}
           <div className="mb-6">
-            {commercialsLoading ? (
+            {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[...Array(4)].map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-xl bg-secondary" />
@@ -162,7 +149,7 @@ const Index = () => {
 
           {/* Commercials Chart */}
           <div className="mb-6">
-            {commercialsLoading ? (
+            {isLoading ? (
               <Skeleton className="h-[380px] rounded-xl bg-secondary" />
             ) : (
               <CommercialsChart data={filteredCommercials} />
@@ -171,7 +158,7 @@ const Index = () => {
 
           {/* Commercials Table */}
           <div className="mb-8">
-            {commercialsLoading ? (
+            {isLoading ? (
               <Skeleton className="h-[400px] rounded-xl bg-secondary" />
             ) : (
               <CommercialsTable data={filteredCommercials} />
