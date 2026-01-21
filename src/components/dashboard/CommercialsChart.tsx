@@ -24,27 +24,28 @@ export function CommercialsChart({ data }: CommercialsChartProps) {
 
   return (
     <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">
-          Contactos vs Cuentas Cerradas por Comercial
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-foreground">
+          Contactos vs Cerradas
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <CardContent className="pb-3">
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
             <XAxis
               dataKey="name"
               stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
+              fontSize={10}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
               stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
+              fontSize={10}
               tickLine={false}
               axisLine={false}
+              width={30}
             />
             <Tooltip
               contentStyle={{
@@ -52,27 +53,28 @@ export function CommercialsChart({ data }: CommercialsChartProps) {
                 border: "1px solid hsl(var(--border))",
                 borderRadius: "8px",
                 color: "hsl(var(--foreground))",
+                fontSize: "12px",
               }}
               labelStyle={{ color: "hsl(var(--foreground))" }}
             />
             <Legend
-              wrapperStyle={{ color: "hsl(var(--foreground))" }}
+              wrapperStyle={{ color: "hsl(var(--foreground))", fontSize: "10px" }}
               formatter={(value) => {
-                if (value === "contactos") return "Contactos";
-                if (value === "cuentasCerradas") return "Cuentas Cerradas";
+                if (value === "contactos") return "Cont.";
+                if (value === "cuentasCerradas") return "Cerr.";
                 return value;
               }}
             />
             <Bar
               dataKey="contactos"
               fill="hsl(var(--primary))"
-              radius={[4, 4, 0, 0]}
+              radius={[3, 3, 0, 0]}
               name="contactos"
             />
             <Bar
               dataKey="cuentasCerradas"
               fill="hsl(var(--success))"
-              radius={[4, 4, 0, 0]}
+              radius={[3, 3, 0, 0]}
               name="cuentasCerradas"
             />
           </BarChart>

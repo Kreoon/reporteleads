@@ -24,30 +24,34 @@ export function CommercialsKPIs({ data }: CommercialsKPIsProps) {
     : "—";
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       <KPICard
-        title="Total Contactos"
+        title="Contactos"
         value={totalContactos.toLocaleString()}
         icon={Users}
         variant="primary"
+        compact
       />
       <KPICard
-        title="Tasa de Cierre"
+        title="Cierre"
         value={`${tasaCierre}%`}
         icon={TrendingUp}
         variant="success"
+        compact
       />
       <KPICard
-        title="Monto Total Facturado"
-        value={`$${totalMonto.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        title="Facturado"
+        value={`$${totalMonto >= 1000 ? (totalMonto / 1000).toFixed(1) + 'K' : totalMonto.toFixed(0)}`}
         icon={DollarSign}
         variant="warning"
+        compact
       />
       <KPICard
-        title="Top Comercial"
-        value={topComercial}
+        title="Top"
+        value={topComercial.split(' ')[0]}
         icon={Award}
         variant="default"
+        compact
       />
     </div>
   );

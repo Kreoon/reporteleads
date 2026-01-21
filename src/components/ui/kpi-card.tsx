@@ -12,6 +12,7 @@ export interface KPICardProps {
   variant?: "default" | "primary" | "success" | "warning";
   description?: string;
   className?: string;
+  compact?: boolean;
 }
 
 const variantStyles = {
@@ -21,7 +22,43 @@ const variantStyles = {
   warning: "glass-card border-l-4 border-l-[hsl(var(--warning))]",
 };
 
-export function KPICard({ title, value, icon: Icon, trend, variant = "default", description, className }: KPICardProps) {
+export function KPICard({ title, value, icon: Icon, trend, variant = "default", description, className, compact = false }: KPICardProps) {
+  if (compact) {
+    return (
+      <div className={cn(
+        "rounded-lg p-3 transition-all duration-300 hover:scale-[1.02]",
+        variantStyles[variant],
+        className
+      )}>
+        <div className="flex items-center gap-2">
+          <div className={cn(
+            "p-1.5 rounded-md shrink-0",
+            variant === "primary" ? "bg-white/20" : "bg-secondary"
+          )}>
+            <Icon className={cn(
+              "w-3.5 h-3.5",
+              variant === "primary" ? "text-primary-foreground" : "text-primary"
+            )} />
+          </div>
+          <div className="min-w-0">
+            <p className={cn(
+              "text-[10px] font-medium uppercase tracking-wide truncate",
+              variant === "primary" ? "text-primary-foreground/80" : "text-muted-foreground"
+            )}>
+              {title}
+            </p>
+            <p className={cn(
+              "text-lg font-bold tracking-tight leading-tight",
+              variant === "primary" ? "text-primary-foreground" : "text-foreground"
+            )}>
+              {value}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn(
       "rounded-xl p-5 transition-all duration-300 hover:scale-[1.02]",

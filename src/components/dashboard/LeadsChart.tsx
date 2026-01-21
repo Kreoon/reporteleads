@@ -22,15 +22,15 @@ export function LeadsChart({ data }: LeadsChartProps) {
 
   return (
     <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">
-          Evolución de Leads - Últimos 7 Días
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-foreground">
+          Evolución de Leads
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px] w-full">
+      <CardContent className="pb-3">
+        <div className="h-[220px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.4} />
@@ -41,14 +41,15 @@ export function LeadsChart({ data }: LeadsChartProps) {
               <XAxis 
                 dataKey="displayFecha" 
                 stroke="hsl(215, 20%, 55%)" 
-                fontSize={12}
+                fontSize={10}
                 tickLine={false}
               />
               <YAxis 
                 stroke="hsl(215, 20%, 55%)" 
-                fontSize={12}
+                fontSize={10}
                 tickLine={false}
                 axisLine={false}
+                width={30}
               />
               <Tooltip
                 contentStyle={{
@@ -56,6 +57,7 @@ export function LeadsChart({ data }: LeadsChartProps) {
                   border: "1px solid hsl(222, 30%, 18%)",
                   borderRadius: "8px",
                   color: "hsl(210, 40%, 98%)",
+                  fontSize: "12px",
                 }}
                 labelStyle={{ color: "hsl(215, 20%, 55%)" }}
               />
@@ -63,7 +65,7 @@ export function LeadsChart({ data }: LeadsChartProps) {
                 type="monotone"
                 dataKey="leads"
                 stroke="hsl(217, 91%, 60%)"
-                strokeWidth={3}
+                strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorLeads)"
               />

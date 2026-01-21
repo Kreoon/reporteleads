@@ -69,69 +69,63 @@ export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsPr
   }
 
   return (
-    <div className="space-y-4">
-      {/* Primary KPIs - Row 1 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KPICard
-          title="Total Leads"
-          value={totalLeads.toLocaleString()}
-          icon={Users}
-          variant="primary"
-          description={`${data.length} días de data`}
-        />
-        <KPICard
-          title="Inversión Total"
-          value={`$${totalInversion.toLocaleString("es-ES", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-          icon={DollarSign}
-          variant="success"
-        />
-        <KPICard
-          title="CPL Promedio"
-          value={`$${avgCPL.toFixed(2)}`}
-          icon={Target}
-          variant="warning"
-          description="Costo por Lead"
-        />
-        <KPICard
-          title="CTR Promedio"
-          value={`${avgCTR.toFixed(2)}%`}
-          icon={MousePointerClick}
-          variant="default"
-          description="Click-through Rate"
-        />
-      </div>
-
-      {/* Secondary KPIs - Row 2 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KPICard
-          title="ROAS Real"
-          value={`${roas.toFixed(2)}x`}
-          icon={TrendingUp}
-          variant={roas >= 1 ? "success" : "warning"}
-          description={`$${totalRevenue.toLocaleString()} facturado`}
-        />
-        <KPICard
-          title="Impresiones"
-          value={totalImpresiones.toLocaleString()}
-          icon={Eye}
-          variant="default"
-          description="Alcance total"
-        />
-        <KPICard
-          title="CPC"
-          value={`$${cpc.toFixed(2)}`}
-          icon={BarChart3}
-          variant="default"
-          description="Costo por Click"
-        />
-        <KPICard
-          title="Conv. Rate"
-          value={`${conversionRate.toFixed(1)}%`}
-          icon={Percent}
-          variant={conversionRate >= 10 ? "success" : "warning"}
-          description="Clicks → Leads"
-        />
-      </div>
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+      <KPICard
+        title="Leads"
+        value={totalLeads.toLocaleString()}
+        icon={Users}
+        variant="primary"
+        compact
+      />
+      <KPICard
+        title="Inversión"
+        value={`$${totalInversion.toLocaleString("es-ES", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+        icon={DollarSign}
+        variant="success"
+        compact
+      />
+      <KPICard
+        title="CPL"
+        value={`$${avgCPL.toFixed(2)}`}
+        icon={Target}
+        variant="warning"
+        compact
+      />
+      <KPICard
+        title="CTR"
+        value={`${avgCTR.toFixed(2)}%`}
+        icon={MousePointerClick}
+        variant="default"
+        compact
+      />
+      <KPICard
+        title="ROAS"
+        value={`${roas.toFixed(2)}x`}
+        icon={TrendingUp}
+        variant={roas >= 1 ? "success" : "warning"}
+        compact
+      />
+      <KPICard
+        title="Impresiones"
+        value={totalImpresiones >= 1000 ? `${(totalImpresiones / 1000).toFixed(1)}K` : totalImpresiones.toLocaleString()}
+        icon={Eye}
+        variant="default"
+        compact
+      />
+      <KPICard
+        title="CPC"
+        value={`$${cpc.toFixed(2)}`}
+        icon={BarChart3}
+        variant="default"
+        compact
+      />
+      <KPICard
+        title="Conv."
+        value={`${conversionRate.toFixed(1)}%`}
+        icon={Percent}
+        variant={conversionRate >= 10 ? "success" : "warning"}
+        compact
+      />
     </div>
   );
 }
