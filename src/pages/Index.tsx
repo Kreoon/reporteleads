@@ -190,10 +190,15 @@ const Index = () => {
           )}
         </section>
 
-        <footer className="text-center py-6 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            © 2025 EFFI Commerce · Los datos se actualizan automáticamente cada 5 minutos
-          </p>
+        <footer className="text-center py-8 border-t border-border mt-8">
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-sm font-medium text-foreground">
+              Grupo Effi
+            </p>
+            <p className="text-xs text-muted-foreground">
+              © 2025 · Dashboard Captación de Leads · Datos actualizados cada 5 minutos
+            </p>
+          </div>
         </footer>
       </main>
     </div>
