@@ -17,7 +17,10 @@ interface UseDateFiltersReturn extends DateFiltersState {
 
 /**
  * Parse any date string to Date object
- * Supports: ISO 8601, DD/MM/YYYY, DD/MM/YY
+ * Supports: 
+ * - "YYYY-MM-DD HH:mm:ss.sss" (webhook format with space)
+ * - ISO 8601 "YYYY-MM-DDTHH:mm:ss.sssZ"
+ * - "DD/MM/YYYY" or "DD/MM/YY"
  */
 export const parseDate = (input: string | undefined | null): Date | null => {
   if (!input) return null;
@@ -26,8 +29,16 @@ export const parseDate = (input: string | undefined | null): Date | null => {
   if (!str) return null;
 
   try {
+    // Format: "YYYY-MM-DD HH:mm:ss.sss" (webhook format with space)
+    // Convert space to T for proper parsing
+    if (str.includes('-') && str.includes(' ') && str.length >= 10) {
+      const normalized = str.replace(' ', 'T');
+      const d = new Date(normalized);
+      if (!isNaN(d.getTime())) return d;
+    }
+
     // ISO 8601 format (e.g., "2025-05-13T05:00:00.000Z")
-    if (str.includes('T') || (str.includes('-') && str.length >= 10)) {
+    if (str.includes('T') && str.includes('-')) {
       const d = new Date(str);
       if (!isNaN(d.getTime())) return d;
     }
