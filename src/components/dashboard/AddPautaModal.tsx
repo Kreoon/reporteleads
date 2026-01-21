@@ -40,6 +40,14 @@ const COUNTRIES = [
   { code: "CR", name: "Costa Rica" },
 ];
 
+const CHANNELS = [
+  "Meta Ads",
+  "Google Ads",
+  "TikTok Ads",
+  "YouTube Ads",
+  "Display",
+];
+
 interface AddPautaModalProps {
   onSuccess: () => void;
 }
@@ -53,37 +61,52 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
   const [fecha, setFecha] = useState<Date | undefined>(undefined);
   const [pais, setPais] = useState("");
   const [canal, setCanal] = useState("");
+  const [campana, setCampana] = useState("");
   const [leads, setLeads] = useState("");
   const [impresiones, setImpresiones] = useState("");
   const [clicks, setClicks] = useState("");
   const [inversion, setInversion] = useState("");
+  const [alcance, setAlcance] = useState("");
+  const [frecuencia, setFrecuencia] = useState("");
+  const [conversiones, setConversiones] = useState("");
 
   // Auto-calculated fields
   const [ctr, setCtr] = useState("0.00");
   const [cpl, setCpl] = useState("0.00");
+  const [cpc, setCpc] = useState("0.00");
+  const [cpa, setCpa] = useState("0.00");
 
-  // Calculate CTR and CPL automatically
+  // Calculate metrics automatically
   useEffect(() => {
     const clicksNum = parseFloat(clicks) || 0;
     const impresionesNum = parseFloat(impresiones) || 0;
     const leadsNum = parseFloat(leads) || 0;
     const inversionNum = parseFloat(inversion) || 0;
+    const conversionesNum = parseFloat(conversiones) || 0;
 
     const calculatedCtr = impresionesNum > 0 ? (clicksNum / impresionesNum) * 100 : 0;
     const calculatedCpl = leadsNum > 0 ? inversionNum / leadsNum : 0;
+    const calculatedCpc = clicksNum > 0 ? inversionNum / clicksNum : 0;
+    const calculatedCpa = conversionesNum > 0 ? inversionNum / conversionesNum : 0;
 
     setCtr(calculatedCtr.toFixed(2));
     setCpl(calculatedCpl.toFixed(2));
-  }, [clicks, impresiones, leads, inversion]);
+    setCpc(calculatedCpc.toFixed(2));
+    setCpa(calculatedCpa.toFixed(2));
+  }, [clicks, impresiones, leads, inversion, conversiones]);
 
   const resetForm = () => {
     setFecha(undefined);
     setPais("");
     setCanal("");
+    setCampana("");
     setLeads("");
     setImpresiones("");
     setClicks("");
     setInversion("");
+    setAlcance("");
+    setFrecuencia("");
+    setConversiones("");
     setErrors({});
   };
 
@@ -92,7 +115,8 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
 
     if (!fecha) newErrors.fecha = "La fecha es obligatoria";
     if (!pais) newErrors.pais = "El país es obligatorio";
-    if (!canal.trim()) newErrors.canal = "El canal es obligatorio";
+    if (!canal) newErrors.canal = "El canal es obligatorio";
+    if (!campana.trim()) newErrors.campana = "El nombre de campaña es obligatorio";
     if (!leads || parseFloat(leads) <= 0) newErrors.leads = "Debe ser mayor a 0";
     if (!impresiones || parseFloat(impresiones) <= 0) newErrors.impresiones = "Debe ser mayor a 0";
     if (!clicks || parseFloat(clicks) <= 0) newErrors.clicks = "Debe ser mayor a 0";
@@ -114,13 +138,19 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
       const payload = {
         Fecha: fecha ? format(fecha, "yyyy-MM-dd") : "",
         Pais: pais,
-        Canal: canal.trim(),
+        Canal: canal,
+        Campana: campana.trim(),
         Leads_Total: parseInt(leads, 10),
         Impresiones_Total: parseInt(impresiones, 10),
         Clicks_Total: parseInt(clicks, 10),
         CTR_Promedio: parseFloat(ctr),
         Inversion_Total: parseFloat(inversion),
         CPL_Promedio: parseFloat(cpl),
+        CPC: parseFloat(cpc),
+        Alcance: alcance ? parseInt(alcance, 10) : 0,
+        Frecuencia: frecuencia ? parseFloat(frecuencia) : 0,
+        Conversiones: conversiones ? parseInt(conversiones, 10) : 0,
+        CPA: parseFloat(cpa),
       };
 
       const response = await fetch(WEBHOOK_URL, {
@@ -163,7 +193,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[500px] border-2 border-primary bg-background">
+        <DialogContent className="sm:max-w-[560px] border-2 border-primary bg-background max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
               <Plus className="h-5 w-5" />
@@ -174,168 +204,223 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            {/* Fecha */}
-            <div className="grid gap-2">
-              <Label htmlFor="fecha" className="text-foreground font-medium">
-                Fecha *
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !fecha && "text-muted-foreground",
-                      errors.fecha && "border-destructive"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {fecha ? format(fecha, "PPP", { locale: es }) : "Seleccionar fecha"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-[100] bg-background" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={fecha}
-                    onSelect={setFecha}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.fecha && <span className="text-xs text-destructive">{errors.fecha}</span>}
-            </div>
-
-            {/* País */}
-            <div className="grid gap-2">
-              <Label htmlFor="pais" className="text-foreground font-medium">
-                País *
-              </Label>
-              <Select value={pais} onValueChange={setPais}>
-                <SelectTrigger className={cn(errors.pais && "border-destructive")}>
-                  <SelectValue placeholder="Seleccionar país" />
-                </SelectTrigger>
-                <SelectContent className="z-[100] bg-background">
-                  {COUNTRIES.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
-                      {country.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.pais && <span className="text-xs text-destructive">{errors.pais}</span>}
-            </div>
-
-            {/* Canal */}
-            <div className="grid gap-2">
-              <Label htmlFor="canal" className="text-foreground font-medium">
-                Canal *
-              </Label>
-              <Input
-                id="canal"
-                placeholder="Ej: Meta Ads, Google Ads"
-                value={canal}
-                onChange={(e) => setCanal(e.target.value)}
-                className={cn(errors.canal && "border-destructive")}
-              />
-              {errors.canal && <span className="text-xs text-destructive">{errors.canal}</span>}
-            </div>
-
-            {/* Leads e Impresiones en row */}
+          <div className="grid gap-3 py-3 max-h-[55vh] overflow-y-auto pr-2">
+            {/* Fecha y País en row */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2">
-                <Label htmlFor="leads" className="text-foreground font-medium">
-                  Leads *
-                </Label>
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Fecha *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "w-full justify-start text-left font-normal h-9",
+                        !fecha && "text-muted-foreground",
+                        errors.fecha && "border-destructive"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {fecha ? format(fecha, "dd/MM/yyyy", { locale: es }) : "Seleccionar"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[100] bg-background" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={fecha}
+                      onSelect={setFecha}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.fecha && <span className="text-xs text-destructive">{errors.fecha}</span>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">País *</Label>
+                <Select value={pais} onValueChange={setPais}>
+                  <SelectTrigger className={cn("h-9", errors.pais && "border-destructive")}>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100] bg-background">
+                    {COUNTRIES.map((country) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.pais && <span className="text-xs text-destructive">{errors.pais}</span>}
+              </div>
+            </div>
+
+            {/* Canal y Campaña en row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Canal *</Label>
+                <Select value={canal} onValueChange={setCanal}>
+                  <SelectTrigger className={cn("h-9", errors.canal && "border-destructive")}>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100] bg-background">
+                    {CHANNELS.map((channel) => (
+                      <SelectItem key={channel} value={channel}>
+                        {channel}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.canal && <span className="text-xs text-destructive">{errors.canal}</span>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Campaña *</Label>
                 <Input
-                  id="leads"
+                  placeholder="Nombre de campaña"
+                  value={campana}
+                  onChange={(e) => setCampana(e.target.value)}
+                  className={cn("h-9", errors.campana && "border-destructive")}
+                />
+                {errors.campana && <span className="text-xs text-destructive">{errors.campana}</span>}
+              </div>
+            </div>
+
+            {/* Métricas principales */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Leads *</Label>
+                <Input
                   type="number"
                   min="1"
                   placeholder="0"
                   value={leads}
                   onChange={(e) => setLeads(e.target.value)}
-                  className={cn(errors.leads && "border-destructive")}
+                  className={cn("h-9", errors.leads && "border-destructive")}
                 />
                 {errors.leads && <span className="text-xs text-destructive">{errors.leads}</span>}
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="impresiones" className="text-foreground font-medium">
-                  Impresiones *
-                </Label>
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Impresiones *</Label>
                 <Input
-                  id="impresiones"
                   type="number"
                   min="1"
                   placeholder="0"
                   value={impresiones}
                   onChange={(e) => setImpresiones(e.target.value)}
-                  className={cn(errors.impresiones && "border-destructive")}
+                  className={cn("h-9", errors.impresiones && "border-destructive")}
                 />
                 {errors.impresiones && <span className="text-xs text-destructive">{errors.impresiones}</span>}
               </div>
-            </div>
 
-            {/* Clicks e Inversión en row */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-2">
-                <Label htmlFor="clicks" className="text-foreground font-medium">
-                  Clicks *
-                </Label>
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Clicks *</Label>
                 <Input
-                  id="clicks"
                   type="number"
                   min="1"
                   placeholder="0"
                   value={clicks}
                   onChange={(e) => setClicks(e.target.value)}
-                  className={cn(errors.clicks && "border-destructive")}
+                  className={cn("h-9", errors.clicks && "border-destructive")}
                 />
                 {errors.clicks && <span className="text-xs text-destructive">{errors.clicks}</span>}
               </div>
+            </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="inversion" className="text-foreground font-medium">
-                  Inversión ($) *
-                </Label>
+            {/* Inversión y Conversiones */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Inversión ($) *</Label>
                 <Input
-                  id="inversion"
                   type="number"
                   min="0.01"
                   step="0.01"
                   placeholder="0.00"
                   value={inversion}
                   onChange={(e) => setInversion(e.target.value)}
-                  className={cn(errors.inversion && "border-destructive")}
+                  className={cn("h-9", errors.inversion && "border-destructive")}
                 />
                 {errors.inversion && <span className="text-xs text-destructive">{errors.inversion}</span>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Conversiones</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={conversiones}
+                  onChange={(e) => setConversiones(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+            </div>
+
+            {/* Alcance y Frecuencia */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Alcance</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={alcance}
+                  onChange={(e) => setAlcance(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Frecuencia</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={frecuencia}
+                  onChange={(e) => setFrecuencia(e.target.value)}
+                  className="h-9"
+                />
               </div>
             </div>
 
             {/* Campos calculados automáticamente */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
-              <div className="grid gap-2">
-                <Label className="text-muted-foreground text-sm">
-                  CTR (%) <span className="text-xs">(auto)</span>
-                </Label>
+            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border">
+              <div className="grid gap-1">
+                <Label className="text-muted-foreground text-xs">CTR %</Label>
                 <Input
                   value={ctr}
                   readOnly
                   disabled
-                  className="bg-muted/50 text-foreground font-medium"
+                  className="h-8 text-sm bg-muted/50 text-foreground font-medium"
                 />
               </div>
-
-              <div className="grid gap-2">
-                <Label className="text-muted-foreground text-sm">
-                  CPL ($) <span className="text-xs">(auto)</span>
-                </Label>
+              <div className="grid gap-1">
+                <Label className="text-muted-foreground text-xs">CPL $</Label>
                 <Input
                   value={cpl}
                   readOnly
                   disabled
-                  className="bg-muted/50 text-foreground font-medium"
+                  className="h-8 text-sm bg-muted/50 text-foreground font-medium"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label className="text-muted-foreground text-xs">CPC $</Label>
+                <Input
+                  value={cpc}
+                  readOnly
+                  disabled
+                  className="h-8 text-sm bg-muted/50 text-foreground font-medium"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label className="text-muted-foreground text-xs">CPA $</Label>
+                <Input
+                  value={cpa}
+                  readOnly
+                  disabled
+                  className="h-8 text-sm bg-muted/50 text-foreground font-medium"
                 />
               </div>
             </div>
