@@ -67,6 +67,16 @@ const FUNNEL_DESTINATIONS = [
   { value: "formulario_nativo", label: "Formulario Nativo" },
 ];
 
+const CURRENCIES = [
+  { value: "USD", label: "USD - Dólar Estadounidense" },
+  { value: "EUR", label: "EUR - Euro" },
+  { value: "COP", label: "COP - Peso Colombiano" },
+  { value: "MXN", label: "MXN - Peso Mexicano" },
+  { value: "GTQ", label: "GTQ - Quetzal" },
+  { value: "DOP", label: "DOP - Peso Dominicano" },
+  { value: "CRC", label: "CRC - Colón Costarricense" },
+];
+
 interface AddPautaModalProps {
   onSuccess: () => void;
 }
@@ -86,6 +96,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
   const [impresiones, setImpresiones] = useState("");
   const [clicks, setClicks] = useState("");
   const [inversion, setInversion] = useState("");
+  const [moneda, setMoneda] = useState("");
   const [alcance, setAlcance] = useState("");
   const [frecuencia, setFrecuencia] = useState("");
   const [conversiones, setConversiones] = useState("");
@@ -121,6 +132,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
     setImpresiones("");
     setClicks("");
     setInversion("");
+    setMoneda("");
     setAlcance("");
     setFrecuencia("");
     setConversiones("");
@@ -139,6 +151,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
     if (!impresiones || parseFloat(impresiones) <= 0) newErrors.impresiones = "> 0";
     if (!clicks || parseFloat(clicks) <= 0) newErrors.clicks = "> 0";
     if (!inversion || parseFloat(inversion) <= 0) newErrors.inversion = "> 0";
+    if (!moneda) newErrors.moneda = "Obligatorio";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -164,6 +177,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
         Clicks_Total: parseInt(clicks, 10),
         CTR_Promedio: parseFloat(ctr),
         Inversion_Total: parseFloat(inversion),
+        Moneda: moneda,
         CPC: parseFloat(cpc),
         Alcance: alcance ? parseInt(alcance, 10) : 0,
         Frecuencia: frecuencia ? parseFloat(frecuencia) : 0,
@@ -370,10 +384,10 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
               </div>
             </div>
 
-            {/* Row 5: Inversión y Conversiones */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Row 5: Inversión, Moneda y Conversiones */}
+            <div className="grid grid-cols-3 gap-3">
               <div className="grid gap-1.5">
-                <Label className="text-foreground font-medium text-sm">Inversión ($) *</Label>
+                <Label className="text-foreground font-medium text-sm">Inversión *</Label>
                 <Input
                   type="number"
                   min="0.01"
@@ -384,6 +398,23 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
                   className={cn("h-9", errors.inversion && "border-destructive")}
                 />
                 {errors.inversion && <span className="text-xs text-destructive">{errors.inversion}</span>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Moneda *</Label>
+                <Select value={moneda} onValueChange={setMoneda}>
+                  <SelectTrigger className={cn("h-9", errors.moneda && "border-destructive")}>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100] bg-background">
+                    {CURRENCIES.map((currency) => (
+                      <SelectItem key={currency.value} value={currency.value}>
+                        {currency.value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.moneda && <span className="text-xs text-destructive">{errors.moneda}</span>}
               </div>
 
               <div className="grid gap-1.5">
