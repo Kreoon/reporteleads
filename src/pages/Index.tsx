@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Users, DollarSign, Target, MousePointerClick } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
 import { KPICard } from "@/components/ui/kpi-card";
@@ -8,6 +8,7 @@ import { MetricsTable } from "@/components/dashboard/MetricsTable";
 import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
 import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
+import { DateFilters } from "@/components/dashboard/DateFilters";
 import { useMetrics } from "@/hooks/useMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,15 +21,71 @@ const COUNTRIES = [
   { code: "CR", name: "Costa Rica" },
 ];
 
+// Parse fecha string "DD Mes" to comparable date
+const parseFechaToDate = (fechaStr: string): Date | null => {
+  try {
+    const months: Record<string, number> = {
+      'Ene': 0, 'Feb': 1, 'Mar': 2, 'Abr': 3, 'May': 4, 'Jun': 5,
+      'Jul': 6, 'Ago': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dic': 11
+    };
+    const parts = fechaStr.split(' ');
+    if (parts.length !== 2) return null;
+    const day = parseInt(parts[0], 10);
+    const month = months[parts[1]];
+    if (isNaN(day) || month === undefined) return null;
+    const year = new Date().getFullYear();
+    return new Date(year, month, day);
+  } catch {
+    return null;
+  }
+};
+
 const Index = () => {
   const { data, isLoading, lastUpdated, refetch } = useMetrics();
   const [selectedCountry, setSelectedCountry] = useState("EC");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [selectedMonth, setSelectedMonth] = useState("all");
 
-  // Filtrar datos por país seleccionado
-  const filteredRows = data?.rows?.filter(row => row.pais === selectedCountry) || [];
+  // Filter data by country and date filters
+  const filteredRows = useMemo(() => {
+    let rows = data?.rows?.filter(row => row.pais === selectedCountry) || [];
+    
+    // Filter by date range
+    if (dateRange.from || dateRange.to) {
+      rows = rows.filter(row => {
+        const rowDate = parseFechaToDate(row.fecha);
+        if (!rowDate) return true;
+        
+        if (dateRange.from && dateRange.to) {
+          return rowDate >= dateRange.from && rowDate <= dateRange.to;
+        } else if (dateRange.from) {
+          return rowDate >= dateRange.from;
+        } else if (dateRange.to) {
+          return rowDate <= dateRange.to;
+        }
+        return true;
+      });
+    }
+    
+    // Filter by month
+    if (selectedMonth !== "all") {
+      rows = rows.filter(row => {
+        const rowDate = parseFechaToDate(row.fecha);
+        if (!rowDate) return true;
+        const monthStr = String(rowDate.getMonth() + 1).padStart(2, '0');
+        return monthStr === selectedMonth;
+      });
+    }
+    
+    return rows;
+  }, [data?.rows, selectedCountry, dateRange, selectedMonth]);
+
   const filteredCommercials = data?.commercials?.filter(row => row.pais === selectedCountry) || [];
   
-  // Calcular KPIs basados en datos filtrados
+  // Calculate KPIs based on filtered data
   const todayData = filteredRows[filteredRows.length - 1] || filteredRows[0];
   const avgCPL = filteredRows.length > 0 
     ? filteredRows.reduce((acc, row) => acc + row.cpl, 0) / filteredRows.length 
@@ -36,6 +93,11 @@ const Index = () => {
   const avgCTR = filteredRows.length > 0 
     ? filteredRows.reduce((acc, row) => acc + row.ctr, 0) / filteredRows.length 
     : 0;
+
+  const handleClearFilters = () => {
+    setDateRange({ from: undefined, to: undefined });
+    setSelectedMonth("all");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,6 +123,15 @@ const Index = () => {
             ))}
           </TabsList>
         </Tabs>
+
+        {/* Date Filters */}
+        <DateFilters
+          dateRange={dateRange}
+          selectedMonth={selectedMonth}
+          onDateRangeChange={setDateRange}
+          onMonthChange={setSelectedMonth}
+          onClearFilters={handleClearFilters}
+        />
 
         {/* KPI Cards - Pauta */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
