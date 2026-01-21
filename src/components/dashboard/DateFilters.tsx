@@ -21,8 +21,10 @@ import {
 interface DateFiltersProps {
   dateRange: { from: Date | undefined; to: Date | undefined };
   selectedMonth: string;
+  selectedYear: string;
   onDateRangeChange: (range: { from: Date | undefined; to: Date | undefined }) => void;
   onMonthChange: (month: string) => void;
+  onYearChange: (year: string) => void;
   onClearFilters: () => void;
 }
 
@@ -42,16 +44,28 @@ const MONTHS = [
   { value: "12", label: "Diciembre" },
 ];
 
+// Generate years from 2020 to current year + 1
+const currentYear = new Date().getFullYear();
+const YEARS = [
+  { value: "all", label: "Todos los años" },
+  ...Array.from({ length: currentYear - 2020 + 2 }, (_, i) => ({
+    value: String(2020 + i),
+    label: String(2020 + i),
+  })),
+];
+
 export function DateFilters({
   dateRange,
   selectedMonth,
+  selectedYear,
   onDateRangeChange,
   onMonthChange,
+  onYearChange,
   onClearFilters,
 }: DateFiltersProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const hasActiveFilters = dateRange.from || dateRange.to || selectedMonth !== "all";
+  const hasActiveFilters = dateRange.from || dateRange.to || selectedMonth !== "all" || selectedYear !== "all";
 
   return (
     <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
@@ -99,6 +113,20 @@ export function DateFilters({
           />
         </PopoverContent>
       </Popover>
+
+      {/* Year Selector */}
+      <Select value={selectedYear} onValueChange={onYearChange}>
+        <SelectTrigger className="w-[140px]">
+          <SelectValue placeholder="Año" />
+        </SelectTrigger>
+        <SelectContent>
+          {YEARS.map((year) => (
+            <SelectItem key={year.value} value={year.value}>
+              {year.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {/* Month Selector */}
       <Select value={selectedMonth} onValueChange={onMonthChange}>
