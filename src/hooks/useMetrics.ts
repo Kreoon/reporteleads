@@ -73,12 +73,13 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [hasInitialData, setHasInitialData] = useState(false);
 
   // Función unificada de fetch - isManual indica si fue clic del usuario
   const fetchMetrics = useCallback(async (isManual = false) => {
     setIsLoading(true);
     if (isManual) {
-      setError(null); // Solo limpiar error en llamadas manuales
+      setError(null);
     }
     
     try {
@@ -94,11 +95,9 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
       }
       
       const rawData = await response.json();
-      // Asegurar que rawData sea un array
       const dataArray = Array.isArray(rawData) ? rawData : [rawData];
       const rows = mapApiResponse(dataArray);
       
-      // Calcular métricas
       const todayData = rows[rows.length - 1] || rows[0];
       const avgCPL = rows.reduce((acc, row) => acc + row.cpl, 0) / rows.length;
       const avgCTR = rows.reduce((acc, row) => acc + row.ctr, 0) / rows.length;
@@ -111,17 +110,17 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
         avgCTR,
       });
       setLastUpdated(new Date());
-      setError(null); // Limpiar error en éxito
+      setError(null);
+      setHasInitialData(true);
     } catch (err) {
       console.error("Error fetching metrics:", err);
       
-      // Solo mostrar error si fue clic manual del usuario
       if (isManual) {
         setError("No hay conexión con el servidor de datos");
       }
       
-      // Usar datos de respaldo si no hay datos previos (solo en carga inicial)
-      if (!data) {
+      // Usar datos de respaldo solo si no hay datos previos
+      if (!hasInitialData) {
         const rows = FALLBACK_METRICS;
         const todayData = rows[rows.length - 1];
         const avgCPL = rows.reduce((acc, row) => acc + row.cpl, 0) / rows.length;
@@ -138,7 +137,7 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
     } finally {
       setIsLoading(false);
     }
-  }, [data]);
+  }, [hasInitialData]);
 
   // Función para el botón de actualizar (manual)
   const refetch = useCallback(() => {
@@ -146,13 +145,12 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
   }, [fetchMetrics]);
 
   useEffect(() => {
-    // Carga inicial (silenciosa)
     fetchMetrics(false);
     
-    // Intervalo cada 5 minutos (silencioso)
     const interval = setInterval(() => fetchMetrics(false), refreshInterval);
     return () => clearInterval(interval);
-  }, [refreshInterval]); // Removido fetchMetrics de dependencias para evitar loops
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshInterval]);
 
   return { data, isLoading, error, lastUpdated, refetch };
 }
