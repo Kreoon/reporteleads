@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
+import { CommercialRow } from "./useCommercials";
 
-// Configuración de la API
 const API_URL = "https://n8n.grupoeffi.com/webhook/pauta-metricas";
 
-interface ApiResponse {
-  id: number;
+interface ApiPautaResponse {
   Fecha: string;
   Leads_Total: number;
   Impresiones_Total: number;
@@ -12,8 +11,23 @@ interface ApiResponse {
   CTR_Promedio: number;
   Inversion_Total: number;
   CPL_Promedio: number;
-  País: string;
-  createdAt: string;
+  Pais: string;
+}
+
+interface ApiCommercialResponse {
+  Comercial: string;
+  Pais: string;
+  Contactos: number;
+  CuentasCerradas: number;
+  CuentasGestion: number;
+  CuentasPendiente: number;
+  CuentasDescartadas: number;
+  MontoTotal: number;
+}
+
+interface ApiResponse {
+  pauta: ApiPautaResponse[];
+  comerciales: ApiCommercialResponse[];
 }
 
 interface MetricRow {
@@ -29,24 +43,23 @@ interface MetricRow {
 
 interface MetricsData {
   rows: MetricRow[];
+  commercials: CommercialRow[];
   todayLeads: number;
   todayInversion: number;
   avgCPL: number;
   avgCTR: number;
 }
 
-// Datos estáticos de respaldo
-const FALLBACK_METRICS: MetricRow[] = [
+const FALLBACK_PAUTA: MetricRow[] = [
   { fecha: "15 Ene", leads: 78, inversion: 3200, cpl: 41.03, ctr: 2.45, pais: "EC" },
   { fecha: "16 Ene", leads: 92, inversion: 3850, cpl: 41.85, ctr: 2.78, pais: "EC" },
   { fecha: "17 Ene", leads: 65, inversion: 2900, cpl: 44.62, ctr: 2.12, pais: "EC" },
-  { fecha: "18 Ene", leads: 104, inversion: 4200, cpl: 40.38, ctr: 3.05, pais: "EC" },
-  { fecha: "19 Ene", leads: 88, inversion: 3600, cpl: 40.91, ctr: 2.67, pais: "EC" },
-  { fecha: "20 Ene", leads: 115, inversion: 4500, cpl: 39.13, ctr: 3.22, pais: "EC" },
-  { fecha: "21 Ene", leads: 98, inversion: 3950, cpl: 40.31, ctr: 2.89, pais: "EC" },
 ];
 
-// Función para formatear fecha de API (21/01/26) a formato legible (21 Ene)
+const FALLBACK_COMMERCIALS: CommercialRow[] = [
+  { comercial: "Alejandro", pais: "EC", contactos: 38, cuentasCerradas: 5, cuentasGestion: 12, cuentasPendiente: 15, cuentasDescartadas: 6, montoTotal: 627.90 },
+];
+
 const formatDate = (dateStr: string): string => {
   try {
     const [day, month] = dateStr.split('/');
@@ -57,8 +70,7 @@ const formatDate = (dateStr: string): string => {
   }
 };
 
-// Función para mapear respuesta de API al formato interno
-const mapApiResponse = (data: ApiResponse[]): MetricRow[] => {
+const mapPautaResponse = (data: ApiPautaResponse[]): MetricRow[] => {
   return data.map((item) => ({
     fecha: formatDate(item.Fecha),
     leads: item.Leads_Total,
@@ -67,23 +79,31 @@ const mapApiResponse = (data: ApiResponse[]): MetricRow[] => {
     ctr: item.CTR_Promedio,
     impresiones: item.Impresiones_Total,
     clicks: item.Clicks_Total,
-    pais: item.País || "EC",
+    pais: item.Pais || "EC",
   }));
 };
 
-export function useMetrics(refreshInterval = 300000) { // 5 minutos
+const mapCommercialsResponse = (data: ApiCommercialResponse[]): CommercialRow[] => {
+  return data.map((item) => ({
+    comercial: item.Comercial || "Sin nombre",
+    pais: item.Pais || "EC",
+    contactos: item.Contactos ?? 0,
+    cuentasCerradas: item.CuentasCerradas ?? 0,
+    cuentasGestion: item.CuentasGestion ?? 0,
+    cuentasPendiente: item.CuentasPendiente ?? 0,
+    cuentasDescartadas: item.CuentasDescartadas ?? 0,
+    montoTotal: item.MontoTotal ?? 0,
+  }));
+};
+
+export function useMetrics(refreshInterval = 300000) {
   const [data, setData] = useState<MetricsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [hasInitialData, setHasInitialData] = useState(false);
 
-  // Función unificada de fetch - isManual indica si fue clic del usuario
-  const fetchMetrics = useCallback(async (isManual = false) => {
+  const fetchMetrics = useCallback(async () => {
     setIsLoading(true);
-    if (isManual) {
-      setError(null);
-    }
     
     try {
       const response = await fetch(API_URL, {
@@ -97,44 +117,39 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
       
-      const rawData = await response.json();
-      const dataArray = Array.isArray(rawData) ? rawData : [rawData];
-      const rows = mapApiResponse(dataArray);
+      const rawData: ApiResponse = await response.json();
+      
+      const pautaArray = Array.isArray(rawData.pauta) ? rawData.pauta : [];
+      const commercialsArray = Array.isArray(rawData.comerciales) ? rawData.comerciales : [];
+      
+      const rows = mapPautaResponse(pautaArray);
+      const commercials = mapCommercialsResponse(commercialsArray);
       
       const todayData = rows[rows.length - 1] || rows[0];
-      const avgCPL = rows.reduce((acc, row) => acc + row.cpl, 0) / rows.length;
-      const avgCTR = rows.reduce((acc, row) => acc + row.ctr, 0) / rows.length;
+      const avgCPL = rows.length > 0 ? rows.reduce((acc, row) => acc + row.cpl, 0) / rows.length : 0;
+      const avgCTR = rows.length > 0 ? rows.reduce((acc, row) => acc + row.ctr, 0) / rows.length : 0;
       
       setData({
         rows,
+        commercials,
         todayLeads: todayData?.leads || 0,
         todayInversion: todayData?.inversion || 0,
         avgCPL,
         avgCTR,
       });
       setLastUpdated(new Date());
-      setError(null);
       setHasInitialData(true);
     } catch (err) {
       console.error("Error fetching metrics:", err);
       
-      if (isManual) {
-        setError("No hay conexión con el servidor de datos");
-      }
-      
-      // Usar datos de respaldo solo si no hay datos previos
       if (!hasInitialData) {
-        const rows = FALLBACK_METRICS;
-        const todayData = rows[rows.length - 1];
-        const avgCPL = rows.reduce((acc, row) => acc + row.cpl, 0) / rows.length;
-        const avgCTR = rows.reduce((acc, row) => acc + row.ctr, 0) / rows.length;
-        
         setData({
-          rows,
-          todayLeads: todayData.leads,
-          todayInversion: todayData.inversion,
-          avgCPL,
-          avgCTR,
+          rows: FALLBACK_PAUTA,
+          commercials: FALLBACK_COMMERCIALS,
+          todayLeads: FALLBACK_PAUTA[FALLBACK_PAUTA.length - 1].leads,
+          todayInversion: FALLBACK_PAUTA[FALLBACK_PAUTA.length - 1].inversion,
+          avgCPL: FALLBACK_PAUTA.reduce((acc, row) => acc + row.cpl, 0) / FALLBACK_PAUTA.length,
+          avgCTR: FALLBACK_PAUTA.reduce((acc, row) => acc + row.ctr, 0) / FALLBACK_PAUTA.length,
         });
       }
     } finally {
@@ -142,18 +157,17 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
     }
   }, [hasInitialData]);
 
-  // Función para el botón de actualizar (manual)
   const refetch = useCallback(() => {
-    return fetchMetrics(true);
+    return fetchMetrics();
   }, [fetchMetrics]);
 
   useEffect(() => {
-    fetchMetrics(false);
+    fetchMetrics();
     
-    const interval = setInterval(() => fetchMetrics(false), refreshInterval);
+    const interval = setInterval(() => fetchMetrics(), refreshInterval);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshInterval]);
 
-  return { data, isLoading, error, lastUpdated, refetch };
+  return { data, isLoading, lastUpdated, refetch };
 }
