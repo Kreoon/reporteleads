@@ -12,6 +12,7 @@ interface ApiResponse {
   CTR_Promedio: number;
   Inversion_Total: number;
   CPL_Promedio: number;
+  País: string;
   createdAt: string;
 }
 
@@ -23,6 +24,7 @@ interface MetricRow {
   ctr: number;
   impresiones?: number;
   clicks?: number;
+  pais: string;
 }
 
 interface MetricsData {
@@ -35,13 +37,13 @@ interface MetricsData {
 
 // Datos estáticos de respaldo
 const FALLBACK_METRICS: MetricRow[] = [
-  { fecha: "15 Ene", leads: 78, inversion: 3200, cpl: 41.03, ctr: 2.45 },
-  { fecha: "16 Ene", leads: 92, inversion: 3850, cpl: 41.85, ctr: 2.78 },
-  { fecha: "17 Ene", leads: 65, inversion: 2900, cpl: 44.62, ctr: 2.12 },
-  { fecha: "18 Ene", leads: 104, inversion: 4200, cpl: 40.38, ctr: 3.05 },
-  { fecha: "19 Ene", leads: 88, inversion: 3600, cpl: 40.91, ctr: 2.67 },
-  { fecha: "20 Ene", leads: 115, inversion: 4500, cpl: 39.13, ctr: 3.22 },
-  { fecha: "21 Ene", leads: 98, inversion: 3950, cpl: 40.31, ctr: 2.89 },
+  { fecha: "15 Ene", leads: 78, inversion: 3200, cpl: 41.03, ctr: 2.45, pais: "EC" },
+  { fecha: "16 Ene", leads: 92, inversion: 3850, cpl: 41.85, ctr: 2.78, pais: "EC" },
+  { fecha: "17 Ene", leads: 65, inversion: 2900, cpl: 44.62, ctr: 2.12, pais: "EC" },
+  { fecha: "18 Ene", leads: 104, inversion: 4200, cpl: 40.38, ctr: 3.05, pais: "EC" },
+  { fecha: "19 Ene", leads: 88, inversion: 3600, cpl: 40.91, ctr: 2.67, pais: "EC" },
+  { fecha: "20 Ene", leads: 115, inversion: 4500, cpl: 39.13, ctr: 3.22, pais: "EC" },
+  { fecha: "21 Ene", leads: 98, inversion: 3950, cpl: 40.31, ctr: 2.89, pais: "EC" },
 ];
 
 // Función para formatear fecha de API (21/01/26) a formato legible (21 Ene)
@@ -65,6 +67,7 @@ const mapApiResponse = (data: ApiResponse[]): MetricRow[] => {
     ctr: item.CTR_Promedio,
     impresiones: item.Impresiones_Total,
     clicks: item.Clicks_Total,
+    pais: item.País || "EC",
   }));
 };
 
