@@ -42,10 +42,10 @@ export function MetricsTable({ data }: MetricsTableProps) {
                   key={index} 
                   className="border-border hover:bg-secondary/50 transition-colors"
                 >
-                  <TableCell className="font-medium text-foreground">{row.fecha}</TableCell>
-                  <TableCell className="text-right text-primary font-semibold">{row.leads}</TableCell>
-                  <TableCell className="text-right text-foreground">${row.inversion.toLocaleString()}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">${row.cpl.toFixed(2)}</TableCell>
+                  <TableCell className="font-medium text-foreground">{row.fecha || '-'}</TableCell>
+                  <TableCell className="text-right text-primary font-semibold">{row.leads ?? 0}</TableCell>
+                  <TableCell className="text-right text-foreground">${(row.inversion ?? 0).toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">${(row.cpl ?? 0).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
