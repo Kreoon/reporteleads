@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { CommercialRow } from "./useCommercials";
 
-const API_URL = "https://n8n.grupoeffi.com/webhook/pauta-metricas";
+const PAUTA_API_URL = "https://n8n.grupoeffi.com/webhook/pauta-metricas";
+const COMERCIALES_API_URL = "https://n8n.grupoeffi.com/webhook/comercial-metricas";
 
 interface ApiPautaResponse {
   Fecha: string;
@@ -23,11 +24,6 @@ interface ApiCommercialResponse {
   CuentasPendiente: number;
   CuentasDescartadas: number;
   MontoTotal: number;
-}
-
-interface ApiResponse {
-  pauta: ApiPautaResponse[];
-  comerciales: ApiCommercialResponse[];
 }
 
 interface MetricRow {
@@ -106,21 +102,35 @@ export function useMetrics(refreshInterval = 300000) {
     setIsLoading(true);
     
     try {
-      const response = await fetch(API_URL, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // Fetch both endpoints simultaneously
+      const [pautaResponse, comercialesResponse] = await Promise.all([
+        fetch(PAUTA_API_URL, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        fetch(COMERCIALES_API_URL, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ]);
       
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      if (!pautaResponse.ok) {
+        throw new Error(`Error pauta ${pautaResponse.status}: ${pautaResponse.statusText}`);
+      }
+      if (!comercialesResponse.ok) {
+        throw new Error(`Error comerciales ${comercialesResponse.status}: ${comercialesResponse.statusText}`);
       }
       
-      const rawData: ApiResponse = await response.json();
+      const pautaRawData = await pautaResponse.json();
+      const comercialesRawData = await comercialesResponse.json();
       
-      const pautaArray = Array.isArray(rawData.pauta) ? rawData.pauta : [];
-      const commercialsArray = Array.isArray(rawData.comerciales) ? rawData.comerciales : [];
+      // Handle different response structures (array or object with array)
+      const pautaArray = Array.isArray(pautaRawData) 
+        ? pautaRawData 
+        : (Array.isArray(pautaRawData.pauta) ? pautaRawData.pauta : []);
+      const commercialsArray = Array.isArray(comercialesRawData) 
+        ? comercialesRawData 
+        : (Array.isArray(comercialesRawData.comerciales) ? comercialesRawData.comerciales : []);
       
       const rows = mapPautaResponse(pautaArray);
       const commercials = mapCommercialsResponse(commercialsArray);
