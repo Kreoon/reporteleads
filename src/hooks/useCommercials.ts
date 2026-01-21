@@ -8,4 +8,5 @@ export interface CommercialRow {
   cuentasPendiente: number;
   cuentasDescartadas: number;
   montoTotal: number;
+  fecha?: string; // Optional date field for filtering
 }

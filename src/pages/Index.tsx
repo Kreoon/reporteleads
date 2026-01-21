@@ -83,7 +83,41 @@ const Index = () => {
     return rows;
   }, [data?.rows, selectedCountry, dateRange, selectedMonth]);
 
-  const filteredCommercials = data?.commercials?.filter(row => row.pais === selectedCountry) || [];
+  // Filter commercials by country and date filters
+  const filteredCommercials = useMemo(() => {
+    let commercials = data?.commercials?.filter(row => row.pais === selectedCountry) || [];
+    
+    // Filter by date range (if commercials have fecha field)
+    if (dateRange.from || dateRange.to) {
+      commercials = commercials.filter(row => {
+        if (!row.fecha) return true; // Keep rows without date
+        const rowDate = parseFechaToDate(row.fecha);
+        if (!rowDate) return true;
+        
+        if (dateRange.from && dateRange.to) {
+          return rowDate >= dateRange.from && rowDate <= dateRange.to;
+        } else if (dateRange.from) {
+          return rowDate >= dateRange.from;
+        } else if (dateRange.to) {
+          return rowDate <= dateRange.to;
+        }
+        return true;
+      });
+    }
+    
+    // Filter by month (if commercials have fecha field)
+    if (selectedMonth !== "all") {
+      commercials = commercials.filter(row => {
+        if (!row.fecha) return true; // Keep rows without date
+        const rowDate = parseFechaToDate(row.fecha);
+        if (!rowDate) return true;
+        const monthStr = String(rowDate.getMonth() + 1).padStart(2, '0');
+        return monthStr === selectedMonth;
+      });
+    }
+    
+    return commercials;
+  }, [data?.commercials, selectedCountry, dateRange, selectedMonth]);
   
   // Calculate KPIs based on filtered data
   const todayData = filteredRows[filteredRows.length - 1] || filteredRows[0];
