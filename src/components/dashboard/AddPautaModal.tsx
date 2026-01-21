@@ -48,6 +48,25 @@ const CHANNELS = [
   "Display",
 ];
 
+const CAMPAIGN_TYPES = [
+  { value: "leads", label: "Leads" },
+  { value: "conversiones", label: "Conversiones" },
+  { value: "ventas", label: "Ventas" },
+  { value: "alcance", label: "Alcance" },
+  { value: "reconocimiento", label: "Reconocimiento" },
+  { value: "trafico", label: "Tráfico" },
+  { value: "engagement", label: "Engagement" },
+  { value: "video_views", label: "Video Views" },
+  { value: "retargeting", label: "Retargeting" },
+  { value: "remarketing", label: "Remarketing" },
+];
+
+const FUNNEL_DESTINATIONS = [
+  { value: "whatsapp", label: "WhatsApp Directo" },
+  { value: "landing", label: "Landing Page" },
+  { value: "formulario_nativo", label: "Formulario Nativo" },
+];
+
 interface AddPautaModalProps {
   onSuccess: () => void;
 }
@@ -61,6 +80,8 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
   const [fecha, setFecha] = useState<Date | undefined>(undefined);
   const [pais, setPais] = useState("");
   const [canal, setCanal] = useState("");
+  const [tipoCampana, setTipoCampana] = useState("");
+  const [destinoFunnel, setDestinoFunnel] = useState("");
   const [campana, setCampana] = useState("");
   const [leads, setLeads] = useState("");
   const [impresiones, setImpresiones] = useState("");
@@ -99,6 +120,8 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
     setFecha(undefined);
     setPais("");
     setCanal("");
+    setTipoCampana("");
+    setDestinoFunnel("");
     setCampana("");
     setLeads("");
     setImpresiones("");
@@ -113,14 +136,16 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!fecha) newErrors.fecha = "La fecha es obligatoria";
-    if (!pais) newErrors.pais = "El país es obligatorio";
-    if (!canal) newErrors.canal = "El canal es obligatorio";
-    if (!campana.trim()) newErrors.campana = "El nombre de campaña es obligatorio";
-    if (!leads || parseFloat(leads) <= 0) newErrors.leads = "Debe ser mayor a 0";
-    if (!impresiones || parseFloat(impresiones) <= 0) newErrors.impresiones = "Debe ser mayor a 0";
-    if (!clicks || parseFloat(clicks) <= 0) newErrors.clicks = "Debe ser mayor a 0";
-    if (!inversion || parseFloat(inversion) <= 0) newErrors.inversion = "Debe ser mayor a 0";
+    if (!fecha) newErrors.fecha = "Obligatorio";
+    if (!pais) newErrors.pais = "Obligatorio";
+    if (!canal) newErrors.canal = "Obligatorio";
+    if (!tipoCampana) newErrors.tipoCampana = "Obligatorio";
+    if (!destinoFunnel) newErrors.destinoFunnel = "Obligatorio";
+    if (!campana.trim()) newErrors.campana = "Obligatorio";
+    if (!leads || parseFloat(leads) <= 0) newErrors.leads = "> 0";
+    if (!impresiones || parseFloat(impresiones) <= 0) newErrors.impresiones = "> 0";
+    if (!clicks || parseFloat(clicks) <= 0) newErrors.clicks = "> 0";
+    if (!inversion || parseFloat(inversion) <= 0) newErrors.inversion = "> 0";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -139,6 +164,8 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
         Fecha: fecha ? format(fecha, "yyyy-MM-dd") : "",
         Pais: pais,
         Canal: canal,
+        Tipo_Campana: tipoCampana,
+        Destino_Funnel: destinoFunnel,
         Campana: campana.trim(),
         Leads_Total: parseInt(leads, 10),
         Impresiones_Total: parseInt(impresiones, 10),
@@ -193,7 +220,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[560px] border-2 border-primary bg-background max-h-[90vh]">
+        <DialogContent className="sm:max-w-[600px] border-2 border-primary bg-background max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
               <Plus className="h-5 w-5" />
@@ -205,7 +232,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
           </DialogHeader>
 
           <div className="grid gap-3 py-3 max-h-[55vh] overflow-y-auto pr-2">
-            {/* Fecha y País en row */}
+            {/* Row 1: Fecha y País */}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label className="text-foreground font-medium text-sm">Fecha *</Label>
@@ -255,7 +282,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
               </div>
             </div>
 
-            {/* Canal y Campaña en row */}
+            {/* Row 2: Canal y Tipo de Campaña */}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label className="text-foreground font-medium text-sm">Canal *</Label>
@@ -275,9 +302,46 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
               </div>
 
               <div className="grid gap-1.5">
-                <Label className="text-foreground font-medium text-sm">Campaña *</Label>
+                <Label className="text-foreground font-medium text-sm">Tipo de Campaña *</Label>
+                <Select value={tipoCampana} onValueChange={setTipoCampana}>
+                  <SelectTrigger className={cn("h-9", errors.tipoCampana && "border-destructive")}>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100] bg-background">
+                    {CAMPAIGN_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.tipoCampana && <span className="text-xs text-destructive">{errors.tipoCampana}</span>}
+              </div>
+            </div>
+
+            {/* Row 3: Destino Funnel y Nombre Campaña */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Destino Funnel *</Label>
+                <Select value={destinoFunnel} onValueChange={setDestinoFunnel}>
+                  <SelectTrigger className={cn("h-9", errors.destinoFunnel && "border-destructive")}>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100] bg-background">
+                    {FUNNEL_DESTINATIONS.map((dest) => (
+                      <SelectItem key={dest.value} value={dest.value}>
+                        {dest.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.destinoFunnel && <span className="text-xs text-destructive">{errors.destinoFunnel}</span>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label className="text-foreground font-medium text-sm">Nombre Campaña *</Label>
                 <Input
-                  placeholder="Nombre de campaña"
+                  placeholder="Ej: Promo Enero 2026"
                   value={campana}
                   onChange={(e) => setCampana(e.target.value)}
                   className={cn("h-9", errors.campana && "border-destructive")}
@@ -286,7 +350,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
               </div>
             </div>
 
-            {/* Métricas principales */}
+            {/* Row 4: Métricas principales */}
             <div className="grid grid-cols-3 gap-3">
               <div className="grid gap-1.5">
                 <Label className="text-foreground font-medium text-sm">Leads *</Label>
@@ -328,7 +392,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
               </div>
             </div>
 
-            {/* Inversión y Conversiones */}
+            {/* Row 5: Inversión y Conversiones */}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label className="text-foreground font-medium text-sm">Inversión ($) *</Label>
@@ -357,7 +421,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
               </div>
             </div>
 
-            {/* Alcance y Frecuencia */}
+            {/* Row 6: Alcance y Frecuencia */}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label className="text-foreground font-medium text-sm">Alcance</Label>
