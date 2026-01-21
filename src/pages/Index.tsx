@@ -132,7 +132,7 @@ const Index = () => {
                 </div>
               </div>
             ) : (
-              <PautaKPIs data={filteredRows} />
+              <PautaKPIs data={filteredRows} commercialsData={filteredCommercials} />
             )}
           </div>
 

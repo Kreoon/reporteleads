@@ -29,6 +29,18 @@ export const parseDate = (input: string | undefined | null): Date | null => {
   if (!str) return null;
 
   try {
+    // Format: "YYYY-MM-DD" (new webhook format, e.g., "2026-01-21")
+    if (str.includes('-') && !str.includes(' ') && !str.includes('T') && str.length === 10) {
+      const parts = str.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        if (!isNaN(d.getTime())) return d;
+      }
+    }
+
     // Format: "YYYY-MM-DD HH:mm:ss.sss" (webhook format with space)
     // Convert space to T for proper parsing
     if (str.includes('-') && str.includes(' ') && str.length >= 10) {
