@@ -4,12 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface InvestmentChartProps {
   data: Array<{
     fecha: string;
+    fechaDisplay?: string;
     inversion: number;
     leads: number;
   }>;
 }
 
+// Helper to get display-friendly date
+const getDisplayDate = (row: { fecha: string; fechaDisplay?: string }) => 
+  row.fechaDisplay || row.fecha;
+
 export function InvestmentChart({ data }: InvestmentChartProps) {
+  // Transform data to use display-friendly dates
+  const chartData = data.map(row => ({
+    ...row,
+    displayFecha: getDisplayDate(row),
+  }));
+
   return (
     <Card className="glass-card">
       <CardHeader>
@@ -20,10 +31,10 @@ export function InvestmentChart({ data }: InvestmentChartProps) {
       <CardContent>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(222, 30%, 18%)" />
               <XAxis 
-                dataKey="fecha" 
+                dataKey="displayFecha" 
                 stroke="hsl(215, 20%, 55%)" 
                 fontSize={12}
                 tickLine={false}

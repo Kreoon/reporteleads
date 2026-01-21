@@ -31,6 +31,7 @@ interface ApiCommercialResponse {
 
 interface MetricRow {
   fecha: string;
+  fechaDisplay?: string;
   leads: number;
   inversion: number;
   cpl: number;
@@ -79,7 +80,10 @@ const formatDate = (dateStr: string): string => {
 
 const mapPautaResponse = (data: ApiPautaResponse[]): MetricRow[] => {
   return data.map((item) => ({
-    fecha: formatDate(item.Fecha),
+    // IMPORTANT: keep the raw date string so year/month filters can work (e.g. "21/01/26").
+    // Use fechaRaw for filtering and fecha for display.
+    fecha: item.Fecha,
+    fechaDisplay: formatDate(item.Fecha),
     leads: item.Leads_Total,
     inversion: item.Inversion_Total,
     cpl: item.CPL_Promedio,
