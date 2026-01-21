@@ -16,32 +16,22 @@ interface CommercialsTableProps {
 export function CommercialsTable({ data }: CommercialsTableProps) {
   return (
     <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">
-          Tabla de Comerciales
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-foreground">
+          Detalle Comerciales
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
+      <CardContent className="pb-3">
+        <div className="overflow-x-auto max-h-[220px] overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="text-muted-foreground font-medium">Comercial</TableHead>
-                <TableHead className="text-muted-foreground font-medium text-right">Contactos</TableHead>
-                <TableHead className="text-muted-foreground font-medium text-right">
-                  <span className="text-[hsl(var(--success))]">Cerradas</span>
-                </TableHead>
-                <TableHead className="text-muted-foreground font-medium text-right">
-                  <span className="text-primary">En Gestión</span>
-                </TableHead>
-                <TableHead className="text-muted-foreground font-medium text-right">
-                  <span className="text-[hsl(var(--warning))]">Pendiente</span>
-                </TableHead>
-                <TableHead className="text-muted-foreground font-medium text-right">
-                  <span className="text-destructive">Descartadas</span>
-                </TableHead>
-                <TableHead className="text-muted-foreground font-medium text-right">Monto Total</TableHead>
-                <TableHead className="text-muted-foreground font-medium text-right">Tasa Cierre</TableHead>
+                <TableHead className="text-muted-foreground font-medium text-xs py-2">Comercial</TableHead>
+                <TableHead className="text-muted-foreground font-medium text-xs text-right py-2">Cont.</TableHead>
+                <TableHead className="text-[hsl(var(--success))] font-medium text-xs text-right py-2">Cerr.</TableHead>
+                <TableHead className="text-primary font-medium text-xs text-right py-2">Gest.</TableHead>
+                <TableHead className="text-muted-foreground font-medium text-xs text-right py-2">Monto</TableHead>
+                <TableHead className="text-muted-foreground font-medium text-xs text-right py-2">%</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -51,28 +41,22 @@ export function CommercialsTable({ data }: CommercialsTableProps) {
                   : "0.0";
                 return (
                   <TableRow key={index} className="border-border/30 hover:bg-secondary/50">
-                    <TableCell className="font-medium text-foreground">
-                      {row.comercial ?? "—"}
+                    <TableCell className="font-medium text-foreground text-xs py-1.5">
+                      {(row.comercial ?? "—").split(' ')[0]}
                     </TableCell>
-                    <TableCell className="text-right text-foreground">
-                      {(row.contactos ?? 0).toLocaleString()}
+                    <TableCell className="text-right text-foreground text-xs py-1.5">
+                      {row.contactos ?? 0}
                     </TableCell>
-                    <TableCell className="text-right text-[hsl(var(--success))] font-semibold">
-                      {(row.cuentasCerradas ?? 0).toLocaleString()}
+                    <TableCell className="text-right text-[hsl(var(--success))] font-semibold text-xs py-1.5">
+                      {row.cuentasCerradas ?? 0}
                     </TableCell>
-                    <TableCell className="text-right text-primary font-semibold">
-                      {(row.cuentasGestion ?? 0).toLocaleString()}
+                    <TableCell className="text-right text-primary font-semibold text-xs py-1.5">
+                      {row.cuentasGestion ?? 0}
                     </TableCell>
-                    <TableCell className="text-right text-[hsl(var(--warning))] font-semibold">
-                      {(row.cuentasPendiente ?? 0).toLocaleString()}
+                    <TableCell className="text-right text-foreground text-xs py-1.5">
+                      ${(row.montoTotal ?? 0) >= 1000 ? ((row.montoTotal ?? 0) / 1000).toFixed(1) + 'K' : (row.montoTotal ?? 0).toFixed(0)}
                     </TableCell>
-                    <TableCell className="text-right text-destructive font-semibold">
-                      {(row.cuentasDescartadas ?? 0).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right text-foreground font-semibold">
-                      ${(row.montoTotal ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell className="text-right text-primary font-semibold">
+                    <TableCell className="text-right text-primary font-semibold text-xs py-1.5">
                       {tasaCierre}%
                     </TableCell>
                   </TableRow>
@@ -80,8 +64,8 @@ export function CommercialsTable({ data }: CommercialsTableProps) {
               })}
               {data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                    No hay datos de comerciales para este país
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-4 text-xs">
+                    Sin datos
                   </TableCell>
                 </TableRow>
               )}

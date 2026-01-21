@@ -25,20 +25,20 @@ const getDisplayDate = (row: { fecha: string; fechaDisplay?: string }) =>
 export function MetricsTable({ data }: MetricsTableProps) {
   return (
     <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-foreground">
           Resumen Diario
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
+      <CardContent className="pb-3">
+        <div className="overflow-x-auto max-h-[220px] overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-muted-foreground font-semibold">Fecha</TableHead>
-                <TableHead className="text-muted-foreground font-semibold text-right">Leads</TableHead>
-                <TableHead className="text-muted-foreground font-semibold text-right">Inversión</TableHead>
-                <TableHead className="text-muted-foreground font-semibold text-right">CPL</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs py-2">Fecha</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs text-right py-2">Leads</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs text-right py-2">Inv.</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs text-right py-2">CPL</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -47,10 +47,10 @@ export function MetricsTable({ data }: MetricsTableProps) {
                   key={index} 
                   className="border-border hover:bg-secondary/50 transition-colors"
                 >
-                  <TableCell className="font-medium text-foreground">{getDisplayDate(row) || '-'}</TableCell>
-                  <TableCell className="text-right text-primary font-semibold">{row.leads ?? 0}</TableCell>
-                  <TableCell className="text-right text-foreground">${(row.inversion ?? 0).toLocaleString()}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">${(row.cpl ?? 0).toFixed(2)}</TableCell>
+                  <TableCell className="font-medium text-foreground text-xs py-1.5">{getDisplayDate(row) || '-'}</TableCell>
+                  <TableCell className="text-right text-primary font-semibold text-xs py-1.5">{row.leads ?? 0}</TableCell>
+                  <TableCell className="text-right text-foreground text-xs py-1.5">${(row.inversion ?? 0).toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-muted-foreground text-xs py-1.5">${(row.cpl ?? 0).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -23,36 +23,38 @@ export function InvestmentChart({ data }: InvestmentChartProps) {
 
   return (
     <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">
-          Inversión vs Leads por Día
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-foreground">
+          Inversión vs Leads
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px] w-full">
+      <CardContent className="pb-3">
+        <div className="h-[220px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(222, 30%, 18%)" />
               <XAxis 
                 dataKey="displayFecha" 
                 stroke="hsl(215, 20%, 55%)" 
-                fontSize={12}
+                fontSize={10}
                 tickLine={false}
               />
               <YAxis 
                 yAxisId="left"
                 stroke="hsl(215, 20%, 55%)" 
-                fontSize={12}
+                fontSize={10}
                 tickLine={false}
                 axisLine={false}
+                width={30}
               />
               <YAxis 
                 yAxisId="right"
                 orientation="right"
                 stroke="hsl(215, 20%, 55%)" 
-                fontSize={12}
+                fontSize={10}
                 tickLine={false}
                 axisLine={false}
+                width={25}
               />
               <Tooltip
                 contentStyle={{
@@ -60,29 +62,30 @@ export function InvestmentChart({ data }: InvestmentChartProps) {
                   border: "1px solid hsl(222, 30%, 18%)",
                   borderRadius: "8px",
                   color: "hsl(210, 40%, 98%)",
+                  fontSize: "12px",
                 }}
                 labelStyle={{ color: "hsl(215, 20%, 55%)" }}
                 formatter={(value: number, name: string) => [
                   name === "inversion" ? `$${value.toLocaleString()}` : value,
-                  name === "inversion" ? "Inversión" : "Leads"
+                  name === "inversion" ? "Inv." : "Leads"
                 ]}
               />
               <Legend 
-                wrapperStyle={{ color: "hsl(215, 20%, 55%)" }}
-                formatter={(value) => value === "inversion" ? "Inversión ($)" : "Leads"}
+                wrapperStyle={{ color: "hsl(215, 20%, 55%)", fontSize: "10px" }}
+                formatter={(value) => value === "inversion" ? "Inv. ($)" : "Leads"}
               />
               <Bar 
                 yAxisId="left"
                 dataKey="inversion" 
                 fill="hsl(199, 89%, 48%)" 
-                radius={[4, 4, 0, 0]}
+                radius={[3, 3, 0, 0]}
                 name="inversion"
               />
               <Bar 
                 yAxisId="right"
                 dataKey="leads" 
                 fill="hsl(217, 91%, 60%)" 
-                radius={[4, 4, 0, 0]}
+                radius={[3, 3, 0, 0]}
                 name="leads"
               />
             </BarChart>

@@ -110,64 +110,54 @@ const Index = () => {
         hasActiveFilters={hasActiveFilters}
       />
       
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-3 py-4 max-w-[1600px]">
         {/* Section: Pauta (Marketing Metrics) */}
-        <section className="mb-10">
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📈 Métricas de Pauta
           </h2>
 
-          <div className="mb-6">
+          <div className="mb-4">
             {isLoading ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                {[...Array(8)].map((_, i) => (
+                  <Skeleton key={i} className="h-24 rounded-xl bg-secondary" />
+                ))}
               </div>
             ) : (
               <PautaKPIs data={filteredRows} commercialsData={filteredCommercials} />
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Charts + Table in 3-column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {isLoading ? (
               <>
-                <Skeleton className="h-[350px] rounded-xl bg-secondary" />
-                <Skeleton className="h-[350px] rounded-xl bg-secondary" />
+                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
               </>
             ) : (
               <>
                 <LeadsChart data={filteredRows} />
                 <InvestmentChart data={filteredRows} />
+                <MetricsTable data={filteredRows} />
               </>
             )}
           </div>
-
-          {isLoading ? (
-            <Skeleton className="h-[350px] rounded-xl bg-secondary" />
-          ) : (
-            <MetricsTable data={filteredRows} />
-          )}
         </section>
 
         {/* Section: Commercials */}
-        <section className="mb-10">
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📊 Performance de Comerciales
           </h2>
 
-          <div className="mb-6">
+          <div className="mb-4">
             {isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
+                  <Skeleton key={i} className="h-24 rounded-xl bg-secondary" />
                 ))}
               </div>
             ) : (
@@ -175,19 +165,20 @@ const Index = () => {
             )}
           </div>
 
-          <div className="mb-6">
+          {/* Chart + Table side by side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {isLoading ? (
-              <Skeleton className="h-[350px] rounded-xl bg-secondary" />
+              <>
+                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+              </>
             ) : (
-              <CommercialsChart data={filteredCommercials} />
+              <>
+                <CommercialsChart data={filteredCommercials} />
+                <CommercialsTable data={filteredCommercials} />
+              </>
             )}
           </div>
-
-          {isLoading ? (
-            <Skeleton className="h-[350px] rounded-xl bg-secondary" />
-          ) : (
-            <CommercialsTable data={filteredCommercials} />
-          )}
         </section>
 
         <footer className="text-center py-8 border-t border-border mt-8">
