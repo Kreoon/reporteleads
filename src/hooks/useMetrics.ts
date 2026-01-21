@@ -74,9 +74,12 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchMetrics = useCallback(async () => {
+  // Función unificada de fetch - isManual indica si fue clic del usuario
+  const fetchMetrics = useCallback(async (isManual = false) => {
     setIsLoading(true);
-    setError(null);
+    if (isManual) {
+      setError(null); // Solo limpiar error en llamadas manuales
+    }
     
     try {
       const response = await fetch(API_URL, {
@@ -91,7 +94,9 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
       }
       
       const rawData = await response.json();
-      const rows = mapApiResponse(rawData);
+      // Asegurar que rawData sea un array
+      const dataArray = Array.isArray(rawData) ? rawData : [rawData];
+      const rows = mapApiResponse(dataArray);
       
       // Calcular métricas
       const todayData = rows[rows.length - 1] || rows[0];
@@ -106,12 +111,16 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
         avgCTR,
       });
       setLastUpdated(new Date());
-      setError(null);
+      setError(null); // Limpiar error en éxito
     } catch (err) {
       console.error("Error fetching metrics:", err);
-      setError("No hay conexión con el servidor de datos");
       
-      // Usar datos de respaldo si no hay datos previos
+      // Solo mostrar error si fue clic manual del usuario
+      if (isManual) {
+        setError("No hay conexión con el servidor de datos");
+      }
+      
+      // Usar datos de respaldo si no hay datos previos (solo en carga inicial)
       if (!data) {
         const rows = FALLBACK_METRICS;
         const todayData = rows[rows.length - 1];
@@ -131,12 +140,19 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutos
     }
   }, [data]);
 
-  useEffect(() => {
-    fetchMetrics();
-    
-    const interval = setInterval(fetchMetrics, refreshInterval);
-    return () => clearInterval(interval);
-  }, [fetchMetrics, refreshInterval]);
+  // Función para el botón de actualizar (manual)
+  const refetch = useCallback(() => {
+    return fetchMetrics(true);
+  }, [fetchMetrics]);
 
-  return { data, isLoading, error, lastUpdated, refetch: fetchMetrics };
+  useEffect(() => {
+    // Carga inicial (silenciosa)
+    fetchMetrics(false);
+    
+    // Intervalo cada 5 minutos (silencioso)
+    const interval = setInterval(() => fetchMetrics(false), refreshInterval);
+    return () => clearInterval(interval);
+  }, [refreshInterval]); // Removido fetchMetrics de dependencias para evitar loops
+
+  return { data, isLoading, error, lastUpdated, refetch };
 }
