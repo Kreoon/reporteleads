@@ -8,6 +8,7 @@ import { MetricsTable } from "@/components/dashboard/MetricsTable";
 import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
 import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
+import { CommercialsFilterDebug } from "@/components/dashboard/CommercialsFilterDebug";
 import { useMetrics } from "@/hooks/useMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -76,6 +77,13 @@ const getCommercialDate = (row: { fecha?: string }): Date | null => {
   return row.fecha ? parseFechaToDate(row.fecha) : null;
 };
 
+const formatDDMMYYYY = (d: Date): string => {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(d.getFullYear());
+  return `${dd}/${mm}/${yyyy}`;
+};
+
 const Index = () => {
   const { data, isLoading, lastUpdated, refetch } = useMetrics();
   const [selectedCountry, setSelectedCountry] = useState("EC");
@@ -85,6 +93,32 @@ const Index = () => {
   });
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [selectedYear, setSelectedYear] = useState("all");
+
+  const commercialsDebug = useMemo(() => {
+    const countryRows = (data?.commercials ?? []).filter((r) => r.pais === selectedCountry);
+    const parsed = countryRows
+      .map((r) => ({ raw: (r.fecha ?? "").trim(), date: getCommercialDate(r) }))
+      .filter((x) => x.raw.length > 0);
+
+    const invalidFechaCount = parsed.filter((x) => !x.date).length;
+    const validDates = parsed
+      .filter((x) => x.date)
+      .map((x) => x.date as Date)
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    const min = validDates[0];
+    const max = validDates[validDates.length - 1];
+
+    const uniqueRaw = Array.from(new Set(parsed.map((x) => x.raw))).slice(0, 6);
+
+    return {
+      totalCountryRecords: countryRows.length,
+      invalidFechaCount,
+      minFechaLabel: min ? formatDDMMYYYY(min) : "—",
+      maxFechaLabel: max ? formatDDMMYYYY(max) : "—",
+      sampleFechas: uniqueRaw,
+    };
+  }, [data?.commercials, selectedCountry]);
 
   // Filter data by country and date filters
   const filteredRows = useMemo(() => {
@@ -279,6 +313,19 @@ const Index = () => {
           <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
             📊 Performance de Comerciales
           </h2>
+
+          {!isLoading && (
+            <div className="mb-4">
+              <CommercialsFilterDebug
+                totalCountryRecords={commercialsDebug.totalCountryRecords}
+                totalAfterFilters={filteredCommercials.length}
+                invalidFechaCount={commercialsDebug.invalidFechaCount}
+                minFechaLabel={commercialsDebug.minFechaLabel}
+                maxFechaLabel={commercialsDebug.maxFechaLabel}
+                sampleFechas={commercialsDebug.sampleFechas}
+              />
+            </div>
+          )}
 
           {/* Commercials KPIs */}
           <div className="mb-6">
