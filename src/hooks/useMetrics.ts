@@ -59,9 +59,17 @@ const FALLBACK_COMMERCIALS: CommercialRow[] = [
 
 const formatDate = (dateStr: string): string => {
   try {
-    const [day, month] = dateStr.split('/');
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${day} ${months[parseInt(month, 10) - 1]}`;
+    // Handle format "D/MM/YYYY" or "DD/MM/YYYY" from API
+    const parts = dateStr.split('/');
+    if (parts.length >= 2) {
+      const day = parts[0];
+      const month = parseInt(parts[1], 10);
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      if (month >= 1 && month <= 12) {
+        return `${day} ${months[month - 1]}`;
+      }
+    }
+    return dateStr;
   } catch {
     return dateStr;
   }
