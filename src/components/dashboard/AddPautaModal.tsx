@@ -83,7 +83,6 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
   const [tipoCampana, setTipoCampana] = useState("");
   const [destinoFunnel, setDestinoFunnel] = useState("");
   const [campana, setCampana] = useState("");
-  const [leads, setLeads] = useState("");
   const [impresiones, setImpresiones] = useState("");
   const [clicks, setClicks] = useState("");
   const [inversion, setInversion] = useState("");
@@ -93,7 +92,6 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
 
   // Auto-calculated fields
   const [ctr, setCtr] = useState("0.00");
-  const [cpl, setCpl] = useState("0.00");
   const [cpc, setCpc] = useState("0.00");
   const [cpa, setCpa] = useState("0.00");
 
@@ -101,20 +99,17 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
   useEffect(() => {
     const clicksNum = parseFloat(clicks) || 0;
     const impresionesNum = parseFloat(impresiones) || 0;
-    const leadsNum = parseFloat(leads) || 0;
     const inversionNum = parseFloat(inversion) || 0;
     const conversionesNum = parseFloat(conversiones) || 0;
 
     const calculatedCtr = impresionesNum > 0 ? (clicksNum / impresionesNum) * 100 : 0;
-    const calculatedCpl = leadsNum > 0 ? inversionNum / leadsNum : 0;
     const calculatedCpc = clicksNum > 0 ? inversionNum / clicksNum : 0;
     const calculatedCpa = conversionesNum > 0 ? inversionNum / conversionesNum : 0;
 
     setCtr(calculatedCtr.toFixed(2));
-    setCpl(calculatedCpl.toFixed(2));
     setCpc(calculatedCpc.toFixed(2));
     setCpa(calculatedCpa.toFixed(2));
-  }, [clicks, impresiones, leads, inversion, conversiones]);
+  }, [clicks, impresiones, inversion, conversiones]);
 
   const resetForm = () => {
     setFecha(undefined);
@@ -123,7 +118,6 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
     setTipoCampana("");
     setDestinoFunnel("");
     setCampana("");
-    setLeads("");
     setImpresiones("");
     setClicks("");
     setInversion("");
@@ -142,7 +136,6 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
     if (!tipoCampana) newErrors.tipoCampana = "Obligatorio";
     if (!destinoFunnel) newErrors.destinoFunnel = "Obligatorio";
     if (!campana.trim()) newErrors.campana = "Obligatorio";
-    if (!leads || parseFloat(leads) <= 0) newErrors.leads = "> 0";
     if (!impresiones || parseFloat(impresiones) <= 0) newErrors.impresiones = "> 0";
     if (!clicks || parseFloat(clicks) <= 0) newErrors.clicks = "> 0";
     if (!inversion || parseFloat(inversion) <= 0) newErrors.inversion = "> 0";
@@ -167,12 +160,10 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
         Tipo_Campana: tipoCampana,
         Destino_Funnel: destinoFunnel,
         Campana: campana.trim(),
-        Leads_Total: parseInt(leads, 10),
         Impresiones_Total: parseInt(impresiones, 10),
         Clicks_Total: parseInt(clicks, 10),
         CTR_Promedio: parseFloat(ctr),
         Inversion_Total: parseFloat(inversion),
-        CPL_Promedio: parseFloat(cpl),
         CPC: parseFloat(cpc),
         Alcance: alcance ? parseInt(alcance, 10) : 0,
         Frecuencia: frecuencia ? parseFloat(frecuencia) : 0,
@@ -351,20 +342,7 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
             </div>
 
             {/* Row 4: Métricas principales */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="grid gap-1.5">
-                <Label className="text-foreground font-medium text-sm">Leads *</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  placeholder="0"
-                  value={leads}
-                  onChange={(e) => setLeads(e.target.value)}
-                  className={cn("h-9", errors.leads && "border-destructive")}
-                />
-                {errors.leads && <span className="text-xs text-destructive">{errors.leads}</span>}
-              </div>
-
+            <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label className="text-foreground font-medium text-sm">Impresiones *</Label>
                 <Input
@@ -450,20 +428,11 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
             </div>
 
             {/* Campos calculados automáticamente */}
-            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border">
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border">
               <div className="grid gap-1">
                 <Label className="text-muted-foreground text-xs">CTR %</Label>
                 <Input
                   value={ctr}
-                  readOnly
-                  disabled
-                  className="h-8 text-sm bg-muted/50 text-foreground font-medium"
-                />
-              </div>
-              <div className="grid gap-1">
-                <Label className="text-muted-foreground text-xs">CPL $</Label>
-                <Input
-                  value={cpl}
                   readOnly
                   disabled
                   className="h-8 text-sm bg-muted/50 text-foreground font-medium"
