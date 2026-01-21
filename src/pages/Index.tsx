@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, DollarSign, Target, MousePointerClick, WifiOff } from "lucide-react";
+import { Users, DollarSign, Target, MousePointerClick } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
 import { KPICard } from "@/components/ui/kpi-card";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
@@ -11,7 +11,6 @@ import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useCommercials } from "@/hooks/useCommercials";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const COUNTRIES = [
@@ -23,11 +22,10 @@ const COUNTRIES = [
 ];
 
 const Index = () => {
-  const { data, isLoading, error, lastUpdated, refetch } = useMetrics();
+  const { data, isLoading, lastUpdated, refetch } = useMetrics();
   const { 
     data: commercialsData, 
     isLoading: commercialsLoading, 
-    error: commercialsError,
     refetch: refetchCommercials 
   } = useCommercials();
   
@@ -50,8 +48,6 @@ const Index = () => {
   const avgCTR = filteredRows.length > 0 
     ? filteredRows.reduce((acc, row) => acc + row.ctr, 0) / filteredRows.length 
     : 0;
-
-  const hasError = error || commercialsError;
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,16 +74,6 @@ const Index = () => {
           </TabsList>
         </Tabs>
 
-        {/* Error Alert */}
-        {hasError && (
-          <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/50">
-            <WifiOff className="h-4 w-4" />
-            <AlertTitle>Sin conexión</AlertTitle>
-            <AlertDescription>
-              {error || commercialsError}. Mostrando datos de respaldo.
-            </AlertDescription>
-          </Alert>
-        )}
 
         {/* KPI Cards - Pauta */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
