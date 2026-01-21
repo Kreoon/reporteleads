@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 
-// Configuración de la API - Reemplazar con tu URL de n8n
-const API_URL = "https://n8n.tudominio.com/webhook/pauta-metricas";
+// Configuración de la API
+const API_URL = "https://n8n.grupoeffi.com/webhook/pauta-metricas";
 
 interface ApiResponse {
-  Fecha: string;
-  Leads_Total: number;
-  Impresiones_Total: number;
-  Clicks_Total: number;
-  CTR_Promedio: string;
-  Inversion_Total: number;
-  CPL_Promedio: string;
+  id: number;
+  fecha: string;
+  leads_total: number;
+  impresiones_total: number;
+  clicks_total: number;
+  ctr_promedio: number;
+  inversion_total: number;
+  cpl_promedio: number;
+  created_at: string;
 }
 
 interface MetricRow {
@@ -54,17 +56,15 @@ const formatDate = (dateStr: string): string => {
 };
 
 // Función para mapear respuesta de API al formato interno
-const mapApiResponse = (data: ApiResponse | ApiResponse[]): MetricRow[] => {
-  const dataArray = Array.isArray(data) ? data : [data];
-  
-  return dataArray.map((item) => ({
-    fecha: formatDate(item.Fecha),
-    leads: item.Leads_Total,
-    inversion: item.Inversion_Total,
-    cpl: parseFloat(item.CPL_Promedio) || 0,
-    ctr: parseFloat(item.CTR_Promedio) || 0,
-    impresiones: item.Impresiones_Total,
-    clicks: item.Clicks_Total,
+const mapApiResponse = (data: ApiResponse[]): MetricRow[] => {
+  return data.map((item) => ({
+    fecha: formatDate(item.fecha),
+    leads: item.leads_total,
+    inversion: item.inversion_total,
+    cpl: item.cpl_promedio,
+    ctr: item.ctr_promedio,
+    impresiones: item.impresiones_total,
+    clicks: item.clicks_total,
   }));
 };
 
