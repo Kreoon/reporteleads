@@ -131,9 +131,9 @@ const Index = () => {
     // Filter by year (if commercials have fecha field)
     if (selectedYear !== "all") {
       commercials = commercials.filter(row => {
-        if (!row.fecha) return true;
+        if (!row.fecha) return false; // Exclude if no fecha when year filter is active
         const rowDate = parseFechaToDate(row.fecha);
-        if (!rowDate) return true;
+        if (!rowDate) return false; // Exclude invalid dates
         return String(rowDate.getFullYear()) === selectedYear;
       });
     }
@@ -141,9 +141,9 @@ const Index = () => {
     // Filter by month (if commercials have fecha field)
     if (selectedMonth !== "all") {
       commercials = commercials.filter(row => {
-        if (!row.fecha) return true;
+        if (!row.fecha) return false; // Exclude if no fecha when month filter is active
         const rowDate = parseFechaToDate(row.fecha);
-        if (!rowDate) return true;
+        if (!rowDate) return false; // Exclude invalid dates
         const monthStr = String(rowDate.getMonth() + 1).padStart(2, '0');
         return monthStr === selectedMonth;
       });
