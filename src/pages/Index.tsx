@@ -55,15 +55,21 @@ const parseFechaToDate = (fechaStr: string): Date | null => {
   }
 };
 
-// For commercials we prefer the business date (row.fecha). If it's missing/invalid, fallback to createdAt.
-const getCommercialDate = (row: { fecha?: string; createdAt?: string }): Date | null => {
-  const byFecha = row.fecha ? parseFechaToDate(row.fecha) : null;
-  if (byFecha) return byFecha;
-  if (row.createdAt) {
-    const d = new Date(row.createdAt);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  return null;
+type CommercialDateMode = "business" | "record";
+
+// Commercials have two date notions:
+// - business: the Fecha coming from the dataset (preferred for day-by-day analysis)
+// - record: createdAt from the webhook DB (useful when filtering by month/year of ingestion)
+const getCommercialDate = (
+  row: { fecha?: string; createdAt?: string },
+  mode: CommercialDateMode = "business",
+): Date | null => {
+  const business = row.fecha ? parseFechaToDate(row.fecha) : null;
+  const record = row.createdAt ? new Date(row.createdAt) : null;
+  const recordValid = record && !isNaN(record.getTime()) ? record : null;
+
+  if (mode === "record") return recordValid ?? business;
+  return business ?? recordValid;
 };
 
 const Index = () => {
@@ -126,7 +132,8 @@ const Index = () => {
     // Filter by date range (if commercials have fecha field)
     if (dateRange.from || dateRange.to) {
       commercials = commercials.filter(row => {
-        const rowDate = getCommercialDate(row);
+        // Date-range filter is treated as business date first (fallback to record date)
+        const rowDate = getCommercialDate(row, "business");
         if (!rowDate) return false;
         
         if (dateRange.from && dateRange.to) {
@@ -143,7 +150,9 @@ const Index = () => {
     // Filter by year (if commercials have fecha field)
     if (selectedYear !== "all") {
       commercials = commercials.filter(row => {
-        const rowDate = getCommercialDate(row);
+        // Year/Month filters are usually intended as "what was registered in that period"
+        // (createdAt), but we still fallback to business date if createdAt is missing.
+        const rowDate = getCommercialDate(row, "record");
         if (!rowDate) return false;
         return String(rowDate.getFullYear()) === selectedYear;
       });
@@ -152,7 +161,7 @@ const Index = () => {
     // Filter by month (if commercials have fecha field)
     if (selectedMonth !== "all") {
       commercials = commercials.filter(row => {
-        const rowDate = getCommercialDate(row);
+        const rowDate = getCommercialDate(row, "record");
         if (!rowDate) return false;
         const monthStr = String(rowDate.getMonth() + 1).padStart(2, '0');
         return monthStr === selectedMonth;
