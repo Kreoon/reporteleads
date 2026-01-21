@@ -22,29 +22,47 @@ const COUNTRIES = [
 // Parse fecha string "DD Mes" or extract from API format to comparable date
 const parseFechaToDate = (fechaStr: string): Date | null => {
   try {
+    const input = (fechaStr ?? "").trim();
+    if (!input) return null;
+
     const months: Record<string, number> = {
       'Ene': 0, 'Feb': 1, 'Mar': 2, 'Abr': 3, 'May': 4, 'Jun': 5,
       'Jul': 6, 'Ago': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dic': 11
     };
     
     // Check if it's in "DD Mes" format (already formatted)
-    const parts = fechaStr.split(' ');
+    const parts = input.split(' ');
     if (parts.length === 2 && months[parts[1]] !== undefined) {
       const day = parseInt(parts[0], 10);
       const month = months[parts[1]];
       const year = new Date().getFullYear();
-      return new Date(year, month, day);
+      if (Number.isNaN(day)) return null;
+      const d = new Date(year, month, day);
+      if (Number.isNaN(d.getTime())) return null;
+      return d;
     }
     
     // Check if it's in "D/MM/YYYY" or "DD/MM/YYYY" format (raw from API)
-    const slashParts = fechaStr.split('/');
+    const slashParts = input.split('/');
     if (slashParts.length === 3) {
       const day = parseInt(slashParts[0], 10);
       const month = parseInt(slashParts[1], 10) - 1;
       const rawYear = parseInt(slashParts[2], 10);
       // Support 2-digit years like "21/01/26" coming from some webhooks
       const year = rawYear < 100 ? 2000 + rawYear : rawYear;
-      return new Date(year, month, day);
+
+      if ([day, month, rawYear].some(Number.isNaN)) return null;
+      const d = new Date(year, month, day);
+      // Validate components to avoid JS date rollover (e.g. 32/13/2026)
+      if (
+        Number.isNaN(d.getTime()) ||
+        d.getFullYear() !== year ||
+        d.getMonth() !== month ||
+        d.getDate() !== day
+      ) {
+        return null;
+      }
+      return d;
     }
     
     return null;
