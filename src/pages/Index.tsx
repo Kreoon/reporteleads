@@ -21,20 +21,33 @@ const COUNTRIES = [
   { code: "CR", name: "Costa Rica" },
 ];
 
-// Parse fecha string "DD Mes" to comparable date
+// Parse fecha string "DD Mes" or extract from API format to comparable date
 const parseFechaToDate = (fechaStr: string): Date | null => {
   try {
     const months: Record<string, number> = {
       'Ene': 0, 'Feb': 1, 'Mar': 2, 'Abr': 3, 'May': 4, 'Jun': 5,
       'Jul': 6, 'Ago': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dic': 11
     };
+    
+    // Check if it's in "DD Mes" format (already formatted)
     const parts = fechaStr.split(' ');
-    if (parts.length !== 2) return null;
-    const day = parseInt(parts[0], 10);
-    const month = months[parts[1]];
-    if (isNaN(day) || month === undefined) return null;
-    const year = new Date().getFullYear();
-    return new Date(year, month, day);
+    if (parts.length === 2 && months[parts[1]] !== undefined) {
+      const day = parseInt(parts[0], 10);
+      const month = months[parts[1]];
+      const year = new Date().getFullYear();
+      return new Date(year, month, day);
+    }
+    
+    // Check if it's in "D/MM/YYYY" or "DD/MM/YYYY" format (raw from API)
+    const slashParts = fechaStr.split('/');
+    if (slashParts.length === 3) {
+      const day = parseInt(slashParts[0], 10);
+      const month = parseInt(slashParts[1], 10) - 1;
+      const year = parseInt(slashParts[2], 10);
+      return new Date(year, month, day);
+    }
+    
+    return null;
   } catch {
     return null;
   }
@@ -48,6 +61,7 @@ const Index = () => {
     to: undefined,
   });
   const [selectedMonth, setSelectedMonth] = useState("all");
+  const [selectedYear, setSelectedYear] = useState("all");
 
   // Filter data by country and date filters
   const filteredRows = useMemo(() => {
@@ -70,6 +84,15 @@ const Index = () => {
       });
     }
     
+    // Filter by year
+    if (selectedYear !== "all") {
+      rows = rows.filter(row => {
+        const rowDate = parseFechaToDate(row.fecha);
+        if (!rowDate) return true;
+        return String(rowDate.getFullYear()) === selectedYear;
+      });
+    }
+    
     // Filter by month
     if (selectedMonth !== "all") {
       rows = rows.filter(row => {
@@ -81,7 +104,7 @@ const Index = () => {
     }
     
     return rows;
-  }, [data?.rows, selectedCountry, dateRange, selectedMonth]);
+  }, [data?.rows, selectedCountry, dateRange, selectedMonth, selectedYear]);
 
   // Filter commercials by country and date filters, then group by commercial name
   const filteredCommercials = useMemo(() => {
@@ -102,6 +125,16 @@ const Index = () => {
           return rowDate <= dateRange.to;
         }
         return true;
+      });
+    }
+    
+    // Filter by year (if commercials have fecha field)
+    if (selectedYear !== "all") {
+      commercials = commercials.filter(row => {
+        if (!row.fecha) return true;
+        const rowDate = parseFechaToDate(row.fecha);
+        if (!rowDate) return true;
+        return String(rowDate.getFullYear()) === selectedYear;
       });
     }
     
@@ -141,7 +174,7 @@ const Index = () => {
     }, {} as Record<string, typeof commercials[0]>);
     
     return Object.values(grouped);
-  }, [data?.commercials, selectedCountry, dateRange, selectedMonth]);
+  }, [data?.commercials, selectedCountry, dateRange, selectedMonth, selectedYear]);
   
   // Calculate KPIs based on filtered data
   const todayData = filteredRows[filteredRows.length - 1] || filteredRows[0];
@@ -155,6 +188,7 @@ const Index = () => {
   const handleClearFilters = () => {
     setDateRange({ from: undefined, to: undefined });
     setSelectedMonth("all");
+    setSelectedYear("all");
   };
 
   return (
@@ -186,8 +220,10 @@ const Index = () => {
         <DateFilters
           dateRange={dateRange}
           selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
           onDateRangeChange={setDateRange}
           onMonthChange={setSelectedMonth}
+          onYearChange={setSelectedYear}
           onClearFilters={handleClearFilters}
         />
 
