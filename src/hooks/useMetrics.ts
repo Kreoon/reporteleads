@@ -25,6 +25,8 @@ interface ApiCommercialResponse {
   CuentasDescartadas: number;
   MontoTotal: number;
   Fecha?: string; // Optional date field
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface MetricRow {
@@ -99,6 +101,7 @@ const mapCommercialsResponse = (data: ApiCommercialResponse[]): CommercialRow[] 
     cuentasDescartadas: item.CuentasDescartadas ?? 0,
     montoTotal: item.MontoTotal ?? 0,
     fecha: item.Fecha ? formatDate(item.Fecha) : undefined,
+    createdAt: item.createdAt,
   }));
 };
 
