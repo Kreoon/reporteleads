@@ -21,26 +21,39 @@ interface MetricRow {
   pais: string;
 }
 
+interface CommercialRow {
+  comercial: string;
+  pais: string;
+  contactos: number;
+  cuentasCerradas: number;
+  cuentasGestion: number;
+  cuentasPendiente: number;
+  cuentasDescartadas: number;
+  montoTotal: number;
+}
+
 interface PautaKPIsProps {
   data: MetricRow[];
+  commercialsData?: CommercialRow[];
   isLoading?: boolean;
 }
 
-export function PautaKPIs({ data, isLoading }: PautaKPIsProps) {
-  // Aggregate totals
+export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsProps) {
+  // Aggregate totals from pauta
   const totalLeads = data.reduce((acc, row) => acc + row.leads, 0);
   const totalInversion = data.reduce((acc, row) => acc + row.inversion, 0);
   const totalImpresiones = data.reduce((acc, row) => acc + (row.impresiones || 0), 0);
   const totalClicks = data.reduce((acc, row) => acc + (row.clicks || 0), 0);
 
+  // Aggregate revenue from commercials (real closed deals)
+  const totalRevenue = commercialsData.reduce((acc, row) => acc + row.montoTotal, 0);
+
   // Averages
-  const avgCPL = data.length > 0 ? totalInversion / totalLeads : 0;
+  const avgCPL = data.length > 0 && totalLeads > 0 ? totalInversion / totalLeads : 0;
   const avgCTR = data.length > 0 ? data.reduce((acc, row) => acc + row.ctr, 0) / data.length : 0;
 
-  // Calculated metrics
-  // ROAS simulation: assuming average ticket value of $50 and 10% conversion from leads
-  const estimatedRevenue = totalLeads * 50 * 0.1; // leads * ticket * conversion
-  const roas = totalInversion > 0 ? estimatedRevenue / totalInversion : 0;
+  // REAL ROAS: Revenue from closed deals / Ad Investment
+  const roas = totalInversion > 0 ? totalRevenue / totalInversion : 0;
 
   // Cost per Click (CPC)
   const cpc = totalClicks > 0 ? totalInversion / totalClicks : 0;
@@ -91,11 +104,11 @@ export function PautaKPIs({ data, isLoading }: PautaKPIsProps) {
       {/* Secondary KPIs - Row 2 */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KPICard
-          title="ROAS Estimado"
+          title="ROAS Real"
           value={`${roas.toFixed(2)}x`}
           icon={TrendingUp}
           variant={roas >= 1 ? "success" : "warning"}
-          description="Return on Ad Spend"
+          description={`$${totalRevenue.toLocaleString()} facturado`}
         />
         <KPICard
           title="Impresiones"
