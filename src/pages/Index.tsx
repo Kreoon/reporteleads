@@ -83,14 +83,14 @@ const Index = () => {
     return rows;
   }, [data?.rows, selectedCountry, dateRange, selectedMonth]);
 
-  // Filter commercials by country and date filters
+  // Filter commercials by country and date filters, then group by commercial name
   const filteredCommercials = useMemo(() => {
     let commercials = data?.commercials?.filter(row => row.pais === selectedCountry) || [];
     
     // Filter by date range (if commercials have fecha field)
     if (dateRange.from || dateRange.to) {
       commercials = commercials.filter(row => {
-        if (!row.fecha) return true; // Keep rows without date
+        if (!row.fecha) return true;
         const rowDate = parseFechaToDate(row.fecha);
         if (!rowDate) return true;
         
@@ -108,7 +108,7 @@ const Index = () => {
     // Filter by month (if commercials have fecha field)
     if (selectedMonth !== "all") {
       commercials = commercials.filter(row => {
-        if (!row.fecha) return true; // Keep rows without date
+        if (!row.fecha) return true;
         const rowDate = parseFechaToDate(row.fecha);
         if (!rowDate) return true;
         const monthStr = String(rowDate.getMonth() + 1).padStart(2, '0');
@@ -116,7 +116,31 @@ const Index = () => {
       });
     }
     
-    return commercials;
+    // Group by commercial name and aggregate metrics
+    const grouped = commercials.reduce((acc, row) => {
+      const key = row.comercial;
+      if (!acc[key]) {
+        acc[key] = {
+          comercial: row.comercial,
+          pais: row.pais,
+          contactos: 0,
+          cuentasCerradas: 0,
+          cuentasGestion: 0,
+          cuentasPendiente: 0,
+          cuentasDescartadas: 0,
+          montoTotal: 0,
+        };
+      }
+      acc[key].contactos += row.contactos;
+      acc[key].cuentasCerradas += row.cuentasCerradas;
+      acc[key].cuentasGestion += row.cuentasGestion;
+      acc[key].cuentasPendiente += row.cuentasPendiente;
+      acc[key].cuentasDescartadas += row.cuentasDescartadas;
+      acc[key].montoTotal += row.montoTotal;
+      return acc;
+    }, {} as Record<string, typeof commercials[0]>);
+    
+    return Object.values(grouped);
   }, [data?.commercials, selectedCountry, dateRange, selectedMonth]);
   
   // Calculate KPIs based on filtered data
