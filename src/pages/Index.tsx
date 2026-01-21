@@ -1,4 +1,4 @@
-import { Users, DollarSign, Target, MousePointerClick } from "lucide-react";
+import { Users, DollarSign, Target, MousePointerClick, WifiOff } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
 import { KPICard } from "@/components/ui/kpi-card";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
@@ -6,9 +6,10 @@ import { InvestmentChart } from "@/components/dashboard/InvestmentChart";
 import { MetricsTable } from "@/components/dashboard/MetricsTable";
 import { useMetrics } from "@/hooks/useMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Index = () => {
-  const { data, isLoading, lastUpdated, refetch } = useMetrics();
+  const { data, isLoading, error, lastUpdated, refetch } = useMetrics();
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,6 +20,17 @@ const Index = () => {
       />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/50">
+            <WifiOff className="h-4 w-4" />
+            <AlertTitle>Sin conexión</AlertTitle>
+            <AlertDescription>
+              {error}. Mostrando datos de respaldo.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {isLoading ? (
