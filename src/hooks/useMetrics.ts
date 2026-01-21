@@ -1,11 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 
+// Configuración de la API - Reemplazar con tu URL de n8n
+const API_URL = "https://n8n.tudominio.com/webhook/pauta-metricas";
+
+interface ApiResponse {
+  Fecha: string;
+  Leads_Total: number;
+  Impresiones_Total: number;
+  Clicks_Total: number;
+  CTR_Promedio: string;
+  Inversion_Total: number;
+  CPL_Promedio: string;
+}
+
 interface MetricRow {
   fecha: string;
   leads: number;
   inversion: number;
   cpl: number;
   ctr: number;
+  impresiones?: number;
+  clicks?: number;
 }
 
 interface MetricsData {
@@ -16,8 +31,8 @@ interface MetricsData {
   avgCTR: number;
 }
 
-// Datos estáticos de ejemplo - Reemplazar con llamada API de n8n después
-const STATIC_METRICS: MetricRow[] = [
+// Datos estáticos de respaldo
+const FALLBACK_METRICS: MetricRow[] = [
   { fecha: "15 Ene", leads: 78, inversion: 3200, cpl: 41.03, ctr: 2.45 },
   { fecha: "16 Ene", leads: 92, inversion: 3850, cpl: 41.85, ctr: 2.78 },
   { fecha: "17 Ene", leads: 65, inversion: 2900, cpl: 44.62, ctr: 2.12 },
@@ -27,7 +42,33 @@ const STATIC_METRICS: MetricRow[] = [
   { fecha: "21 Ene", leads: 98, inversion: 3950, cpl: 40.31, ctr: 2.89 },
 ];
 
-export function useMetrics(refreshInterval = 300000) { // 5 minutes default
+// Función para formatear fecha de API (21/01/26) a formato legible (21 Ene)
+const formatDate = (dateStr: string): string => {
+  try {
+    const [day, month] = dateStr.split('/');
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${day} ${months[parseInt(month, 10) - 1]}`;
+  } catch {
+    return dateStr;
+  }
+};
+
+// Función para mapear respuesta de API al formato interno
+const mapApiResponse = (data: ApiResponse | ApiResponse[]): MetricRow[] => {
+  const dataArray = Array.isArray(data) ? data : [data];
+  
+  return dataArray.map((item) => ({
+    fecha: formatDate(item.Fecha),
+    leads: item.Leads_Total,
+    inversion: item.Inversion_Total,
+    cpl: parseFloat(item.CPL_Promedio) || 0,
+    ctr: parseFloat(item.CTR_Promedio) || 0,
+    impresiones: item.Impresiones_Total,
+    clicks: item.Clicks_Total,
+  }));
+};
+
+export function useMetrics(refreshInterval = 300000) { // 5 minutos
   const [data, setData] = useState<MetricsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,33 +79,57 @@ export function useMetrics(refreshInterval = 300000) { // 5 minutes default
     setError(null);
     
     try {
-      // TODO: Replace with actual n8n API call
-      // const response = await fetch('YOUR_N8N_WEBHOOK_URL/pauta_metricas');
-      // const rawData = await response.json();
+      const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
-      // Usando datos estáticos de ejemplo
-      await new Promise(resolve => setTimeout(resolve, 300)); // Simular carga breve
-      const rows = STATIC_METRICS;
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
       
-      const todayData = rows[rows.length - 1];
+      const rawData = await response.json();
+      const rows = mapApiResponse(rawData);
+      
+      // Calcular métricas
+      const todayData = rows[rows.length - 1] || rows[0];
       const avgCPL = rows.reduce((acc, row) => acc + row.cpl, 0) / rows.length;
       const avgCTR = rows.reduce((acc, row) => acc + row.ctr, 0) / rows.length;
       
       setData({
         rows,
-        todayLeads: todayData.leads,
-        todayInversion: todayData.inversion,
+        todayLeads: todayData?.leads || 0,
+        todayInversion: todayData?.inversion || 0,
         avgCPL,
         avgCTR,
       });
       setLastUpdated(new Date());
+      setError(null);
     } catch (err) {
-      setError("Error al cargar las métricas");
       console.error("Error fetching metrics:", err);
+      setError("No hay conexión con el servidor de datos");
+      
+      // Usar datos de respaldo si no hay datos previos
+      if (!data) {
+        const rows = FALLBACK_METRICS;
+        const todayData = rows[rows.length - 1];
+        const avgCPL = rows.reduce((acc, row) => acc + row.cpl, 0) / rows.length;
+        const avgCTR = rows.reduce((acc, row) => acc + row.ctr, 0) / rows.length;
+        
+        setData({
+          rows,
+          todayLeads: todayData.leads,
+          todayInversion: todayData.inversion,
+          avgCPL,
+          avgCTR,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     fetchMetrics();
