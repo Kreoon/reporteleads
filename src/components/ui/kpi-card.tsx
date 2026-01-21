@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 
-interface KPICardProps {
+export interface KPICardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
@@ -10,6 +10,7 @@ interface KPICardProps {
     isPositive: boolean;
   };
   variant?: "default" | "primary" | "success" | "warning";
+  description?: string;
   className?: string;
 }
 
@@ -20,30 +21,38 @@ const variantStyles = {
   warning: "glass-card border-l-4 border-l-[hsl(var(--warning))]",
 };
 
-export function KPICard({ title, value, icon: Icon, trend, variant = "default", className }: KPICardProps) {
+export function KPICard({ title, value, icon: Icon, trend, variant = "default", description, className }: KPICardProps) {
   return (
     <div className={cn(
-      "rounded-xl p-6 transition-all duration-300 hover:scale-[1.02]",
+      "rounded-xl p-5 transition-all duration-300 hover:scale-[1.02]",
       variantStyles[variant],
       className
     )}>
       <div className="flex items-start justify-between">
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <p className={cn(
-            "text-sm font-medium",
+            "text-xs font-medium uppercase tracking-wide",
             variant === "primary" ? "text-primary-foreground/80" : "text-muted-foreground"
           )}>
             {title}
           </p>
           <p className={cn(
-            "text-3xl font-bold tracking-tight",
+            "text-2xl font-bold tracking-tight",
             variant === "primary" ? "text-primary-foreground" : "text-foreground"
           )}>
             {value}
           </p>
+          {description && (
+            <p className={cn(
+              "text-xs",
+              variant === "primary" ? "text-primary-foreground/70" : "text-muted-foreground"
+            )}>
+              {description}
+            </p>
+          )}
           {trend && (
             <div className={cn(
-              "flex items-center gap-1 text-sm font-medium",
+              "flex items-center gap-1 text-xs font-medium",
               trend.isPositive ? "text-[hsl(var(--success))]" : "text-destructive"
             )}>
               <span>{trend.isPositive ? "↑" : "↓"}</span>
@@ -52,11 +61,11 @@ export function KPICard({ title, value, icon: Icon, trend, variant = "default", 
           )}
         </div>
         <div className={cn(
-          "p-3 rounded-lg",
+          "p-2.5 rounded-lg",
           variant === "primary" ? "bg-white/20" : "bg-secondary"
         )}>
           <Icon className={cn(
-            "w-6 h-6",
+            "w-5 h-5",
             variant === "primary" ? "text-primary-foreground" : "text-primary"
           )} />
         </div>

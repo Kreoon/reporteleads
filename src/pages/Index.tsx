@@ -1,17 +1,15 @@
 import { useState, useMemo } from "react";
-import { Users, DollarSign, Target, MousePointerClick } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
-import { KPICard } from "@/components/ui/kpi-card";
+import { StickyFilters } from "@/components/dashboard/StickyFilters";
+import { PautaKPIs } from "@/components/dashboard/PautaKPIs";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
 import { InvestmentChart } from "@/components/dashboard/InvestmentChart";
 import { MetricsTable } from "@/components/dashboard/MetricsTable";
 import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
 import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
-import { DateFilters } from "@/components/dashboard/DateFilters";
 import { useMetrics } from "@/hooks/useMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const COUNTRIES = [
   { code: "EC", name: "Ecuador" },
@@ -132,7 +130,6 @@ const Index = () => {
     // Filter by date range (if commercials have fecha field)
     if (dateRange.from || dateRange.to) {
       commercials = commercials.filter(row => {
-        // Date-range filter is treated as business date first (fallback to record date)
         const rowDate = getCommercialDate(row, "business");
         if (!rowDate) return false;
         
@@ -150,8 +147,6 @@ const Index = () => {
     // Filter by year (if commercials have fecha field)
     if (selectedYear !== "all") {
       commercials = commercials.filter(row => {
-        // Year/Month filters are usually intended as "what was registered in that period"
-        // (createdAt), but we still fallback to business date if createdAt is missing.
         const rowDate = getCommercialDate(row, "record");
         if (!rowDate) return false;
         return String(rowDate.getFullYear()) === selectedYear;
@@ -194,15 +189,6 @@ const Index = () => {
     
     return Object.values(grouped);
   }, [data?.commercials, selectedCountry, dateRange, selectedMonth, selectedYear]);
-  
-  // Calculate KPIs based on filtered data
-  const todayData = filteredRows[filteredRows.length - 1] || filteredRows[0];
-  const avgCPL = filteredRows.length > 0 
-    ? filteredRows.reduce((acc, row) => acc + row.cpl, 0) / filteredRows.length 
-    : 0;
-  const avgCTR = filteredRows.length > 0 
-    ? filteredRows.reduce((acc, row) => acc + row.ctr, 0) / filteredRows.length 
-    : 0;
 
   const handleClearFilters = () => {
     setDateRange({ from: undefined, to: undefined });
@@ -218,112 +204,82 @@ const Index = () => {
         onRefresh={refetch} 
       />
       
-      <main className="container mx-auto px-4 py-8">
-        {/* Country Tabs */}
-        <Tabs value={selectedCountry} onValueChange={setSelectedCountry} className="mb-6">
-          <TabsList className="grid w-full grid-cols-5 bg-secondary/50 backdrop-blur-sm">
-            {COUNTRIES.map((country) => (
-              <TabsTrigger 
-                key={country.code} 
-                value={country.code}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                <span className="hidden sm:inline">{country.name}</span>
-                <span className="sm:hidden">{country.code}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      {/* Sticky Filters */}
+      <StickyFilters
+        countries={COUNTRIES}
+        selectedCountry={selectedCountry}
+        onCountryChange={setSelectedCountry}
+        dateRange={dateRange}
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        onDateRangeChange={setDateRange}
+        onMonthChange={setSelectedMonth}
+        onYearChange={setSelectedYear}
+        onClearFilters={handleClearFilters}
+      />
+      
+      <main className="container mx-auto px-4 py-6">
+        {/* Section: Pauta (Marketing Metrics) */}
+        <section className="mb-10">
+          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+            📈 Métricas de Pauta
+          </h2>
 
-        {/* Date Filters */}
-        <DateFilters
-          dateRange={dateRange}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          onDateRangeChange={setDateRange}
-          onMonthChange={setSelectedMonth}
-          onYearChange={setSelectedYear}
-          onClearFilters={handleClearFilters}
-        />
+          {/* KPI Cards - Pauta */}
+          <div className="mb-6">
+            {isLoading ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <PautaKPIs data={filteredRows} />
+            )}
+          </div>
 
-        {/* KPI Cards - Pauta */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* Charts - Pauta */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {isLoading ? (
+              <>
+                <Skeleton className="h-[350px] rounded-xl bg-secondary" />
+                <Skeleton className="h-[350px] rounded-xl bg-secondary" />
+              </>
+            ) : (
+              <>
+                <LeadsChart data={filteredRows} />
+                <InvestmentChart data={filteredRows} />
+              </>
+            )}
+          </div>
+
+          {/* Table - Pauta */}
           {isLoading ? (
-            <>
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-32 rounded-xl bg-secondary" />
-              ))}
-            </>
-          ) : (
-            <>
-              <KPICard
-                title="Total Leads (Hoy)"
-                value={todayData?.leads || 0}
-                icon={Users}
-                variant="primary"
-                trend={{ value: 12.5, isPositive: true }}
-              />
-              <KPICard
-                title="Inversión Total (Hoy)"
-                value={`$${(todayData?.inversion || 0).toLocaleString()}`}
-                icon={DollarSign}
-                variant="success"
-                trend={{ value: 8.3, isPositive: true }}
-              />
-              <KPICard
-                title="CPL Promedio"
-                value={`$${avgCPL.toFixed(2)}`}
-                icon={Target}
-                variant="warning"
-                trend={{ value: 5.2, isPositive: false }}
-              />
-              <KPICard
-                title="CTR Promedio"
-                value={`${avgCTR.toFixed(2)}%`}
-                icon={MousePointerClick}
-                variant="default"
-                trend={{ value: 3.1, isPositive: true }}
-              />
-            </>
-          )}
-        </div>
-
-        {/* Charts - Pauta */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-[380px] rounded-xl bg-secondary" />
-              <Skeleton className="h-[380px] rounded-xl bg-secondary" />
-            </>
-          ) : (
-            <>
-              <LeadsChart data={filteredRows} />
-              <InvestmentChart data={filteredRows} />
-            </>
-          )}
-        </div>
-
-        {/* Table - Pauta */}
-        <div className="mb-8">
-          {isLoading ? (
-            <Skeleton className="h-[400px] rounded-xl bg-secondary" />
+            <Skeleton className="h-[350px] rounded-xl bg-secondary" />
           ) : (
             <MetricsTable data={filteredRows} />
           )}
-        </div>
+        </section>
 
-        {/* Commercials Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+        {/* Section: Commercials */}
+        <section className="mb-10">
+          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
             📊 Performance de Comerciales
           </h2>
 
           {/* Commercials KPIs */}
           <div className="mb-6">
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-32 rounded-xl bg-secondary" />
+                  <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
                 ))}
               </div>
             ) : (
@@ -334,26 +290,24 @@ const Index = () => {
           {/* Commercials Chart */}
           <div className="mb-6">
             {isLoading ? (
-              <Skeleton className="h-[380px] rounded-xl bg-secondary" />
+              <Skeleton className="h-[350px] rounded-xl bg-secondary" />
             ) : (
               <CommercialsChart data={filteredCommercials} />
             )}
           </div>
 
           {/* Commercials Table */}
-          <div className="mb-8">
-            {isLoading ? (
-              <Skeleton className="h-[400px] rounded-xl bg-secondary" />
-            ) : (
-              <CommercialsTable data={filteredCommercials} />
-            )}
-          </div>
-        </div>
+          {isLoading ? (
+            <Skeleton className="h-[350px] rounded-xl bg-secondary" />
+          ) : (
+            <CommercialsTable data={filteredCommercials} />
+          )}
+        </section>
 
         {/* Footer */}
         <footer className="text-center py-6 border-t border-border">
           <p className="text-sm text-muted-foreground">
-            © 2024 EFFI Commerce · Los datos se actualizan automáticamente cada 5 minutos
+            © 2025 EFFI Commerce · Los datos se actualizan automáticamente cada 5 minutos
           </p>
         </footer>
       </main>
