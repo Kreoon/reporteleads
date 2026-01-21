@@ -1,6 +1,7 @@
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import grupoEffiLogo from "@/assets/grupo-effi-logo.jpg";
+import { AddPautaModal } from "./AddPautaModal";
 
 interface HeaderProps {
   lastUpdated: Date | null;
@@ -33,7 +34,7 @@ export function Header({ lastUpdated, isLoading, onRefresh }: HeaderProps) {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             {lastUpdated && (
               <div className="hidden sm:flex flex-col items-end">
                 <p className="text-xs text-white/60">Última actualización</p>
@@ -42,6 +43,7 @@ export function Header({ lastUpdated, isLoading, onRefresh }: HeaderProps) {
                 </p>
               </div>
             )}
+            <AddPautaModal onSuccess={onRefresh} />
             <Button 
               variant="outline" 
               size="sm"
