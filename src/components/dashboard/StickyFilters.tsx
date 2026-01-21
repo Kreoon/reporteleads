@@ -35,27 +35,28 @@ interface StickyFiltersProps {
   onMonthChange: (month: string) => void;
   onYearChange: (year: string) => void;
   onClearFilters: () => void;
+  hasActiveFilters: boolean;
 }
 
 const MONTHS = [
   { value: "all", label: "Todos" },
-  { value: "01", label: "Ene" },
-  { value: "02", label: "Feb" },
-  { value: "03", label: "Mar" },
-  { value: "04", label: "Abr" },
-  { value: "05", label: "May" },
-  { value: "06", label: "Jun" },
-  { value: "07", label: "Jul" },
-  { value: "08", label: "Ago" },
-  { value: "09", label: "Sep" },
-  { value: "10", label: "Oct" },
-  { value: "11", label: "Nov" },
-  { value: "12", label: "Dic" },
+  { value: "01", label: "Enero" },
+  { value: "02", label: "Febrero" },
+  { value: "03", label: "Marzo" },
+  { value: "04", label: "Abril" },
+  { value: "05", label: "Mayo" },
+  { value: "06", label: "Junio" },
+  { value: "07", label: "Julio" },
+  { value: "08", label: "Agosto" },
+  { value: "09", label: "Septiembre" },
+  { value: "10", label: "Octubre" },
+  { value: "11", label: "Noviembre" },
+  { value: "12", label: "Diciembre" },
 ];
 
 const currentYear = new Date().getFullYear();
 const YEARS = [
-  { value: "all", label: "Año" },
+  { value: "all", label: "Todos" },
   ...Array.from({ length: currentYear - 2020 + 2 }, (_, i) => ({
     value: String(2020 + i),
     label: String(2020 + i),
@@ -73,11 +74,18 @@ export function StickyFilters({
   onMonthChange,
   onYearChange,
   onClearFilters,
+  hasActiveFilters,
 }: StickyFiltersProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const hasActiveFilters =
-    dateRange.from || dateRange.to || selectedMonth !== "all" || selectedYear !== "all";
+  const formatDateRange = () => {
+    if (!dateRange.from) return null;
+    
+    if (dateRange.to) {
+      return `${format(dateRange.from, "dd MMM", { locale: es })} - ${format(dateRange.to, "dd MMM yyyy", { locale: es })}`;
+    }
+    return format(dateRange.from, "dd MMM yyyy", { locale: es });
+  };
 
   return (
     <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
@@ -109,30 +117,19 @@ export function StickyFilters({
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "justify-start text-left font-normal h-8 text-xs sm:text-sm",
+                  "justify-start text-left font-normal h-9 min-w-[180px]",
                   !dateRange.from && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "dd/MM", { locale: es })} -{" "}
-                      {format(dateRange.to, "dd/MM/yy", { locale: es })}
-                    </>
-                  ) : (
-                    format(dateRange.from, "dd/MM/yy", { locale: es })
-                  )
-                ) : (
-                  <span className="hidden sm:inline">Rango de fechas</span>
-                )}
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formatDateRange() || "Rango de fechas"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 initialFocus
                 mode="range"
-                defaultMonth={dateRange.from}
+                defaultMonth={dateRange.from || new Date()}
                 selected={{ from: dateRange.from, to: dateRange.to }}
                 onSelect={(range) => {
                   onDateRangeChange({ from: range?.from, to: range?.to });
@@ -148,7 +145,7 @@ export function StickyFilters({
 
           {/* Year Selector */}
           <Select value={selectedYear} onValueChange={onYearChange}>
-            <SelectTrigger className="w-[80px] h-8 text-xs sm:text-sm">
+            <SelectTrigger className="w-[100px] h-9">
               <SelectValue placeholder="Año" />
             </SelectTrigger>
             <SelectContent>
@@ -162,7 +159,7 @@ export function StickyFilters({
 
           {/* Month Selector */}
           <Select value={selectedMonth} onValueChange={onMonthChange}>
-            <SelectTrigger className="w-[90px] h-8 text-xs sm:text-sm">
+            <SelectTrigger className="w-[130px] h-9">
               <SelectValue placeholder="Mes" />
             </SelectTrigger>
             <SelectContent>
@@ -180,10 +177,10 @@ export function StickyFilters({
               variant="ghost"
               size="sm"
               onClick={onClearFilters}
-              className="h-8 px-2 text-muted-foreground hover:text-destructive"
+              className="h-9 px-3 text-muted-foreground hover:text-destructive"
             >
-              <X className="h-3.5 w-3.5 mr-1" />
-              <span className="hidden sm:inline text-xs">Limpiar</span>
+              <X className="h-4 w-4 mr-1" />
+              Limpiar
             </Button>
           )}
         </div>
