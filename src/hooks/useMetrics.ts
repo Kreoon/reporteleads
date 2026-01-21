@@ -91,18 +91,31 @@ const mapPautaResponse = (data: ApiPautaResponse[]): MetricRow[] => {
 };
 
 const mapCommercialsResponse = (data: ApiCommercialResponse[]): CommercialRow[] => {
-  return data.map((item) => ({
-    comercial: item.Comercial || "Sin nombre",
-    pais: item.Pais || "EC",
-    contactos: item.Contactos ?? 0,
-    cuentasCerradas: item.CuentasCerradas ?? 0,
-    cuentasGestion: item.CuentasGestion ?? 0,
-    cuentasPendiente: item.CuentasPendiente ?? 0,
-    cuentasDescartadas: item.CuentasDescartadas ?? 0,
-    montoTotal: item.MontoTotal ?? 0,
-    fecha: item.Fecha ? formatDate(item.Fecha) : undefined,
-    createdAt: item.createdAt,
-  }));
+  // Some webhook runs may accidentally include a header-like row (e.g. Fecha: "Fecha").
+  // We discard those here so they don't pollute aggregations and filters.
+  return data
+    .filter((item) => {
+      const fecha = (item.Fecha ?? "").trim();
+      const comercial = (item.Comercial ?? "").trim();
+      if (!comercial) return false;
+      if (comercial.toLowerCase() === "comercial") return false;
+      if (fecha.toLowerCase() === "fecha") return false;
+      return true;
+    })
+    .map((item) => ({
+      comercial: item.Comercial || "Sin nombre",
+      pais: item.Pais || "EC",
+      contactos: item.Contactos ?? 0,
+      cuentasCerradas: item.CuentasCerradas ?? 0,
+      cuentasGestion: item.CuentasGestion ?? 0,
+      cuentasPendiente: item.CuentasPendiente ?? 0,
+      cuentasDescartadas: item.CuentasDescartadas ?? 0,
+      montoTotal: item.MontoTotal ?? 0,
+      // IMPORTANT: keep the raw date string so year/month filters can work (e.g. "21/01/26").
+      // Formatting ("21 Ene") drops the year and breaks year-based filters.
+      fecha: item.Fecha ? item.Fecha : undefined,
+      createdAt: item.createdAt,
+    }));
 };
 
 export function useMetrics(refreshInterval = 300000) {
