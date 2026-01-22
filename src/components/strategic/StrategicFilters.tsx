@@ -1,9 +1,7 @@
-import { Calendar, Filter, SortAsc, SortDesc, X } from "lucide-react";
+import { Filter, SortAsc, SortDesc, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Sidebar,
@@ -15,8 +13,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { DatePresetSelector } from "@/components/ui/date-preset-selector";
 import { StrategicFiltersState } from "@/pages/StrategicDashboard";
 
 interface StrategicFiltersProps {
@@ -28,14 +25,6 @@ interface StrategicFiltersProps {
     campaignTypes: string[];
   };
 }
-
-const COUNTRY_NAMES: Record<string, string> = {
-  EC: "Ecuador",
-  GT: "Guatemala",
-  COL: "Colombia",
-  RD: "Rep. Dominicana",
-  CR: "Costa Rica",
-};
 
 export function StrategicFilters({ filters, onFiltersChange, options }: StrategicFiltersProps) {
   const updateFilter = <K extends keyof StrategicFiltersState>(
@@ -65,6 +54,14 @@ export function StrategicFilters({ filters, onFiltersChange, options }: Strategi
       campaignTypes: [],
       sortBy: "fecha",
       sortOrder: "desc",
+    });
+  };
+
+  const handleDateRangeChange = (range: { from: Date | undefined; to: Date | undefined }) => {
+    onFiltersChange({
+      ...filters,
+      dateFrom: range.from,
+      dateTo: range.to,
     });
   };
 
@@ -100,62 +97,16 @@ export function StrategicFilters({ filters, onFiltersChange, options }: Strategi
         {/* Date Range */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs text-muted-foreground mb-2">
-            Rango de Fechas
+            Período
           </SidebarGroupLabel>
-          <SidebarGroupContent className="space-y-2">
-            <div>
-              <Label className="text-xs text-muted-foreground">Desde</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {filters.dateFrom
-                      ? format(filters.dateFrom, "dd MMM yyyy", { locale: es })
-                      : "Seleccionar"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={filters.dateFrom}
-                    onSelect={(date) => updateFilter("dateFrom", date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Hasta</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {filters.dateTo
-                      ? format(filters.dateTo, "dd MMM yyyy", { locale: es })
-                      : "Seleccionar"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={filters.dateTo}
-                    onSelect={(date) => updateFilter("dateTo", date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+          <SidebarGroupContent>
+            <DatePresetSelector
+              dateRange={{ from: filters.dateFrom, to: filters.dateTo }}
+              onDateRangeChange={handleDateRangeChange}
+              className="w-full"
+            />
           </SidebarGroupContent>
         </SidebarGroup>
-
 
         {/* Channels */}
         {options.channels.length > 0 && (
