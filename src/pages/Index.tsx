@@ -54,9 +54,12 @@ const Index = () => {
     
     return countryRows.filter(row => {
       const date = parseDate(row.fecha);
-      return filterDate(date);
+      const passes = filterDate(date);
+      // Debug logging
+      console.log(`[Filter] fecha: "${row.fecha}" -> parsed: ${date?.toISOString()} -> passes: ${passes}, month: ${selectedMonth}, year: ${selectedYear}`);
+      return passes;
     });
-  }, [data?.rows, selectedCountry, hasActiveFilters, filterDate]);
+  }, [data?.rows, selectedCountry, hasActiveFilters, filterDate, selectedMonth, selectedYear]);
 
   // Filter and group commercials
   const filteredCommercials = useMemo(() => {
