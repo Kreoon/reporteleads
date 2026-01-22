@@ -17,17 +17,27 @@ interface AnalyticsSummaryProps {
 }
 
 export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
+  // Handle empty data
+  if (!data || data.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground py-8">
+        Sin datos para mostrar análisis
+      </div>
+    );
+  }
+
   // Best campaign by CTR
   const bestCTRRow = data.reduce((best, row) => 
     row.ctr > (best?.ctr || 0) ? row : best
   , data[0]);
   
-  // Worst CPA
-  const worstCPARow = data
-    .filter(row => row.cpa && row.cpa > 0)
-    .reduce((worst, row) => 
-      (row.cpa || 0) > (worst?.cpa || 0) ? row : worst
-    , data[0]);
+  // Worst CPA - filter valid CPA values first
+  const rowsWithCPA = data.filter(row => row.cpa && row.cpa > 0);
+  const worstCPARow = rowsWithCPA.length > 0
+    ? rowsWithCPA.reduce((worst, row) => 
+        (row.cpa || 0) > (worst?.cpa || 0) ? row : worst
+      , rowsWithCPA[0])
+    : null;
   
   // Country with most leads
   const leadsByCountry = data.reduce((acc, row) => {
@@ -35,7 +45,7 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
     return acc;
   }, {} as Record<string, number>);
   
-  const topCountry = Object.entries(leadsByCountry)
+  const topCountryEntry = Object.entries(leadsByCountry)
     .sort((a, b) => b[1] - a[1])[0];
   
   // Most profitable channel
@@ -80,8 +90,8 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
     },
     {
       title: "País con Más Resultados",
-      value: topCountry?.[0] || "N/A",
-      detail: topCountry ? `${topCountry[1].toLocaleString()} resultados` : "",
+      value: topCountryEntry?.[0] || "N/A",
+      detail: topCountryEntry ? `${topCountryEntry[1].toLocaleString()} resultados` : "",
       icon: MapPin,
       color: "text-green-500",
       bgColor: "bg-green-500/10",
