@@ -3,7 +3,7 @@ import { Header } from "@/components/dashboard/Header";
 import { StickyFilters } from "@/components/dashboard/StickyFilters";
 import { PautaKPIs } from "@/components/dashboard/PautaKPIs";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
-import { InvestmentChart } from "@/components/dashboard/InvestmentChart";
+import { LeadsPautaVsCommercialsChart } from "@/components/dashboard/LeadsPautaVsCommercialsChart";
 import { MetricsTable } from "@/components/dashboard/MetricsTable";
 import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
@@ -125,7 +125,7 @@ const Index = () => {
         ) : (
           <>
             <LeadsChart data={filteredRows} />
-            <InvestmentChart data={filteredRows} />
+            <LeadsPautaVsCommercialsChart pautaData={filteredRows} commercialsData={filteredCommercials} />
             <MetricsTable data={filteredRows} />
           </>
         )}
