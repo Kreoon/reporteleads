@@ -11,6 +11,7 @@ import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useDateFilters, parseDate } from "@/hooks/useDateFilters";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const COUNTRIES = [
   { code: "EC", name: "Ecuador" },
@@ -35,6 +36,14 @@ const Index = () => {
     hasActiveFilters,
     filterDate,
   } = useDateFilters();
+
+  // Get countries with data
+  const countriesWithData = useMemo(() => {
+    const pautaCountries = new Set(data?.rows?.map(r => r.pais) || []);
+    const commercialCountries = new Set(data?.commercials?.map(r => r.pais) || []);
+    const allCountries = new Set([...pautaCountries, ...commercialCountries]);
+    return COUNTRIES.filter(c => allCountries.has(c.code));
+  }, [data?.rows, data?.commercials]);
 
   // Filter pauta rows by country and date
   const filteredRows = useMemo(() => {
@@ -88,6 +97,70 @@ const Index = () => {
     return Object.values(grouped);
   }, [data?.commercials, selectedCountry, hasActiveFilters, filterDate]);
 
+  const renderPautaContent = () => (
+    <>
+      <div className="mb-4">
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl bg-secondary" />
+            ))}
+          </div>
+        ) : (
+          <PautaKPIs data={filteredRows} commercialsData={filteredCommercials} />
+        )}
+      </div>
+
+      {/* Charts + Table in 3-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+            <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+            <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+          </>
+        ) : (
+          <>
+            <LeadsChart data={filteredRows} />
+            <InvestmentChart data={filteredRows} />
+            <MetricsTable data={filteredRows} />
+          </>
+        )}
+      </div>
+    </>
+  );
+
+  const renderCommercialsContent = () => (
+    <>
+      <div className="mb-4">
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl bg-secondary" />
+            ))}
+          </div>
+        ) : (
+          <CommercialsKPIs data={filteredCommercials} />
+        )}
+      </div>
+
+      {/* Chart + Table side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+            <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+          </>
+        ) : (
+          <>
+            <CommercialsChart data={filteredCommercials} />
+            <CommercialsTable data={filteredCommercials} />
+          </>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Header 
@@ -111,74 +184,82 @@ const Index = () => {
       />
       
       <main className="container mx-auto px-3 py-4 max-w-[1600px]">
-        {/* Section: Pauta (Marketing Metrics) */}
+        {/* Section: Pauta (Marketing Metrics) with Tabs by Country */}
         <section className="mb-6">
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📈 Métricas de Pauta
           </h2>
 
-          <div className="mb-4">
-            {isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-                {[...Array(8)].map((_, i) => (
-                  <Skeleton key={i} className="h-24 rounded-xl bg-secondary" />
-                ))}
-              </div>
-            ) : (
-              <PautaKPIs data={filteredRows} commercialsData={filteredCommercials} />
-            )}
-          </div>
-
-          {/* Charts + Table in 3-column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
-                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
-                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
-              </>
-            ) : (
-              <>
-                <LeadsChart data={filteredRows} />
-                <InvestmentChart data={filteredRows} />
-                <MetricsTable data={filteredRows} />
-              </>
-            )}
-          </div>
+          <Tabs value={selectedCountry} onValueChange={setSelectedCountry} className="w-full">
+            <TabsList className="mb-4 flex flex-wrap h-auto gap-1">
+              {countriesWithData.length > 0 ? (
+                countriesWithData.map(country => (
+                  <TabsTrigger 
+                    key={country.code} 
+                    value={country.code}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    {country.name}
+                  </TabsTrigger>
+                ))
+              ) : (
+                COUNTRIES.map(country => (
+                  <TabsTrigger 
+                    key={country.code} 
+                    value={country.code}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    {country.name}
+                  </TabsTrigger>
+                ))
+              )}
+            </TabsList>
+            
+            {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
+              <TabsContent key={country.code} value={country.code}>
+                {renderPautaContent()}
+              </TabsContent>
+            ))}
+          </Tabs>
         </section>
 
-        {/* Section: Commercials */}
+        {/* Section: Commercials with Tabs by Country */}
         <section className="mb-6">
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📊 Performance de Comerciales
           </h2>
 
-          <div className="mb-4">
-            {isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-24 rounded-xl bg-secondary" />
-                ))}
-              </div>
-            ) : (
-              <CommercialsKPIs data={filteredCommercials} />
-            )}
-          </div>
-
-          {/* Chart + Table side by side */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
-                <Skeleton className="h-[280px] rounded-xl bg-secondary" />
-              </>
-            ) : (
-              <>
-                <CommercialsChart data={filteredCommercials} />
-                <CommercialsTable data={filteredCommercials} />
-              </>
-            )}
-          </div>
+          <Tabs value={selectedCountry} onValueChange={setSelectedCountry} className="w-full">
+            <TabsList className="mb-4 flex flex-wrap h-auto gap-1">
+              {countriesWithData.length > 0 ? (
+                countriesWithData.map(country => (
+                  <TabsTrigger 
+                    key={country.code} 
+                    value={country.code}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    {country.name}
+                  </TabsTrigger>
+                ))
+              ) : (
+                COUNTRIES.map(country => (
+                  <TabsTrigger 
+                    key={country.code} 
+                    value={country.code}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    {country.name}
+                  </TabsTrigger>
+                ))
+              )}
+            </TabsList>
+            
+            {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
+              <TabsContent key={country.code} value={country.code}>
+                {renderCommercialsContent()}
+              </TabsContent>
+            ))}
+          </Tabs>
         </section>
 
         <footer className="text-center py-8 border-t border-border mt-8">

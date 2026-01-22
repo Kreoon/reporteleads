@@ -40,7 +40,7 @@ interface ApiCommercialResponse {
   updatedAt?: string;
 }
 
-interface MetricRow {
+export interface MetricRow {
   fecha: string;
   fechaDisplay?: string;
   leads: number;
