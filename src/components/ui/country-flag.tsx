@@ -1,11 +1,18 @@
 import { cn } from "@/lib/utils";
 
+// Import flag images
+import flagEC from "@/assets/flags/ec.png";
+import flagGT from "@/assets/flags/gt.png";
+import flagCOL from "@/assets/flags/col.png";
+import flagRD from "@/assets/flags/rd.png";
+import flagCR from "@/assets/flags/cr.svg";
+
 const FLAGS: Record<string, string> = {
-  EC: "🇪🇨",
-  GT: "🇬🇹",
-  COL: "🇨🇴",
-  RD: "🇩🇴",
-  CR: "🇨🇷",
+  EC: flagEC,
+  GT: flagGT,
+  COL: flagCOL,
+  RD: flagRD,
+  CR: flagCR,
 };
 
 interface CountryFlagProps {
@@ -31,20 +38,26 @@ export function CountryFlag({
   className,
   size = "md" 
 }: CountryFlagProps) {
-  const flag = FLAGS[code] || "🏳️";
+  const flagSrc = FLAGS[code];
   const name = COUNTRY_NAMES[code] || code;
   
   const sizeClasses = {
-    sm: "text-base",
-    md: "text-xl",
-    lg: "text-2xl",
+    sm: "h-4 w-6",
+    md: "h-5 w-7",
+    lg: "h-6 w-9",
   };
 
   return (
-    <span className={cn("inline-flex items-center gap-1", className)}>
-      <span className={sizeClasses[size]} role="img" aria-label={name}>
-        {flag}
-      </span>
+    <span className={cn("inline-flex items-center gap-1.5", className)}>
+      {flagSrc ? (
+        <img 
+          src={flagSrc} 
+          alt={name}
+          className={cn(sizeClasses[size], "object-cover rounded-sm shadow-sm")}
+        />
+      ) : (
+        <span className="text-muted-foreground text-xs">{code}</span>
+      )}
       {showCode && <span className="text-xs font-medium">{code}</span>}
       {showName && <span className="text-sm">{name}</span>}
     </span>
