@@ -203,13 +203,39 @@ export function useMetrics(refreshInterval = 300000) {
       const pautaRawData = await pautaResponse.json();
       const comercialesRawData = await comercialesResponse.json();
       
-      // Handle different response structures (array or object with array)
-      const pautaArray = Array.isArray(pautaRawData) 
-        ? pautaRawData 
-        : (Array.isArray(pautaRawData.pauta) ? pautaRawData.pauta : []);
-      const commercialsArray = Array.isArray(comercialesRawData) 
-        ? comercialesRawData 
-        : (Array.isArray(comercialesRawData.comerciales) ? comercialesRawData.comerciales : []);
+      // Handle n8n webhook response structure: {success: true, data: [{json: {...}}, ...]}
+      // Extract the actual data from the nested json field
+      const extractData = (rawData: unknown): unknown[] => {
+        if (Array.isArray(rawData)) {
+          // Check if it's n8n format with nested json objects
+          if (rawData.length > 0 && rawData[0]?.json) {
+            return rawData.map((item: { json: unknown }) => item.json);
+          }
+          return rawData;
+        }
+        if (rawData && typeof rawData === 'object') {
+          const obj = rawData as Record<string, unknown>;
+          // Handle {success: true, data: [...]} format
+          if (obj.success && Array.isArray(obj.data)) {
+            const dataArray = obj.data as Array<{ json?: unknown }>;
+            // Check if nested json objects
+            if (dataArray.length > 0 && dataArray[0]?.json) {
+              return dataArray.map((item) => item.json);
+            }
+            return dataArray;
+          }
+          // Handle {pauta: [...]} or {comerciales: [...]} format
+          if (Array.isArray(obj.pauta)) return obj.pauta as unknown[];
+          if (Array.isArray(obj.comerciales)) return obj.comerciales as unknown[];
+        }
+        return [];
+      };
+      
+      const pautaArray = extractData(pautaRawData) as ApiPautaResponse[];
+      const commercialsArray = extractData(comercialesRawData) as ApiCommercialResponse[];
+      
+      console.log("Pauta data extracted:", pautaArray.length, "records");
+      console.log("Commercials data extracted:", commercialsArray.length, "records");
       
       const rows = mapPautaResponse(pautaArray);
       const commercials = mapCommercialsResponse(commercialsArray);
