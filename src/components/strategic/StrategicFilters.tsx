@@ -46,7 +46,7 @@ export function StrategicFilters({ filters, onFiltersChange, options }: Strategi
   };
 
   const toggleArrayFilter = (
-    key: "countries" | "channels" | "campaignTypes",
+    key: "channels" | "campaignTypes",
     value: string
   ) => {
     const current = filters[key];
@@ -71,7 +71,6 @@ export function StrategicFilters({ filters, onFiltersChange, options }: Strategi
   const hasActiveFilters =
     filters.dateFrom ||
     filters.dateTo ||
-    filters.countries.length > 0 ||
     filters.channels.length > 0 ||
     filters.campaignTypes.length > 0;
 
@@ -157,33 +156,6 @@ export function StrategicFilters({ filters, onFiltersChange, options }: Strategi
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Countries */}
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="text-xs text-muted-foreground mb-2">
-            País
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {options.countries.map((country) => (
-                <SidebarMenuItem key={country} className="py-1">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={`country-${country}`}
-                      checked={filters.countries.includes(country)}
-                      onCheckedChange={() => toggleArrayFilter("countries", country)}
-                    />
-                    <Label
-                      htmlFor={`country-${country}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {COUNTRY_NAMES[country] || country}
-                    </Label>
-                  </div>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
 
         {/* Channels */}
         {options.channels.length > 0 && (

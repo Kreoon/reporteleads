@@ -15,6 +15,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const COUNTRIES = [
+  { code: "EC", name: "Ecuador" },
+  { code: "GT", name: "Guatemala" },
+  { code: "COL", name: "Colombia" },
+  { code: "RD", name: "Rep. Dominicana" },
+  { code: "CR", name: "Costa Rica" },
+];
 
 export interface StrategicFiltersState {
   dateFrom: Date | undefined;
@@ -28,8 +37,9 @@ export interface StrategicFiltersState {
 
 const StrategicDashboard = () => {
   const { data, isLoading, lastUpdated, refetch } = useMetrics();
-  const { convert, formatCurrency, getCurrencyForCountry } = useCurrencyConverter();
+  const { convert, getCurrencyForCountry } = useCurrencyConverter();
   
+  const [selectedCountry, setSelectedCountry] = useState("EC");
   const [filters, setFilters] = useState<StrategicFiltersState>({
     dateFrom: undefined,
     dateTo: undefined,
@@ -41,30 +51,34 @@ const StrategicDashboard = () => {
   });
 
   const [groupByCampaign, setGroupByCampaign] = useState(false);
-  const [targetCurrency, setTargetCurrency] = useState<string>("USD");
 
-  // Get unique values for filter options
+  // Get countries with data
+  const countriesWithData = useMemo(() => {
+    const pautaCountries = new Set(data?.rows?.map(r => r.pais) || []);
+    return COUNTRIES.filter(c => pautaCountries.has(c.code));
+  }, [data?.rows]);
+
+  // Get target currency based on selected country
+  const targetCurrency = useMemo(() => {
+    return getCurrencyForCountry(selectedCountry);
+  }, [selectedCountry, getCurrencyForCountry]);
+
+  // Get unique values for filter options (from selected country data)
   const filterOptions = useMemo(() => {
-    const rows = data?.rows || [];
+    const rows = data?.rows?.filter(r => r.pais === selectedCountry) || [];
     return {
       countries: [...new Set(rows.map(r => r.pais))].filter(Boolean),
       channels: [...new Set(rows.map(r => r.canal))].filter(Boolean) as string[],
       campaignTypes: [...new Set(rows.map(r => r.tipoCampana))].filter(Boolean) as string[],
     };
-  }, [data?.rows]);
+  }, [data?.rows, selectedCountry]);
 
-  // Update target currency when country filter changes
-  useMemo(() => {
-    if (filters.countries.length === 1) {
-      setTargetCurrency(getCurrencyForCountry(filters.countries[0]));
-    } else {
-      setTargetCurrency("USD");
-    }
-  }, [filters.countries, getCurrencyForCountry]);
+  // Filter and process data for selected country
 
   // Filter and sort data with optional grouping
   const filteredRows = useMemo(() => {
-    let rows = data?.rows || [];
+    // First filter by selected country tab
+    let rows = (data?.rows || []).filter(row => row.pais === selectedCountry);
     
     // Date range filter
     if (filters.dateFrom || filters.dateTo) {
@@ -75,11 +89,6 @@ const StrategicDashboard = () => {
         if (filters.dateTo && rowDate > filters.dateTo) return false;
         return true;
       });
-    }
-    
-    // Country filter
-    if (filters.countries.length > 0) {
-      rows = rows.filter(row => filters.countries.includes(row.pais));
     }
     
     // Channel filter
@@ -178,7 +187,7 @@ const StrategicDashboard = () => {
     });
     
     return rows;
-  }, [data?.rows, filters, groupByCampaign, targetCurrency, convert]);
+  }, [data?.rows, selectedCountry, filters, groupByCampaign, targetCurrency, convert]);
 
   // Check for CPA alerts (>20% increase)
   const cpaAlert = useMemo(() => {
@@ -219,40 +228,54 @@ const StrategicDashboard = () => {
           
           <main className="flex-1 p-4 lg:p-6 overflow-auto">
             <div className="max-w-[1800px] mx-auto space-y-6">
-            {/* KPIs Section */}
-              <section>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                    📊 KPIs en Tiempo Real
-                    {targetCurrency !== "USD" && (
-                      <span className="text-sm font-normal text-muted-foreground">
-                        (en {targetCurrency})
-                      </span>
-                    )}
-                  </h2>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="group-campaign"
-                        checked={groupByCampaign}
-                        onCheckedChange={setGroupByCampaign}
-                      />
-                      <Label htmlFor="group-campaign" className="text-sm">
-                        Agrupar por campaña
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-                {isLoading ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                    {[...Array(6)].map((_, i) => (
-                      <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
-                    ))}
-                  </div>
-                ) : (
-                  <StrategicKPIs data={filteredRows} currency={targetCurrency} />
-                )}
-              </section>
+              {/* Country Tabs */}
+              <Tabs value={selectedCountry} onValueChange={setSelectedCountry} className="w-full">
+                <TabsList className="mb-4 flex flex-wrap h-auto gap-1">
+                  {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
+                    <TabsTrigger 
+                      key={country.code} 
+                      value={country.code}
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    >
+                      {country.name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
+                  <TabsContent key={country.code} value={country.code} className="space-y-6">
+                    {/* KPIs Section */}
+                    <section>
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                          📊 KPIs en Tiempo Real
+                          <span className="text-sm font-normal text-muted-foreground">
+                            (en {targetCurrency})
+                          </span>
+                        </h2>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="group-campaign"
+                              checked={groupByCampaign}
+                              onCheckedChange={setGroupByCampaign}
+                            />
+                            <Label htmlFor="group-campaign" className="text-sm">
+                              Agrupar por campaña
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+                      {isLoading ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                          {[...Array(6)].map((_, i) => (
+                            <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
+                          ))}
+                        </div>
+                      ) : (
+                        <StrategicKPIs data={filteredRows} currency={targetCurrency} />
+                      )}
+                    </section>
 
               {/* Analytics Summary */}
               <section>
@@ -302,6 +325,9 @@ const StrategicDashboard = () => {
                   <PautaTable data={filteredRows} onRefresh={refetch} />
                 )}
               </section>
+                  </TabsContent>
+                ))}
+              </Tabs>
             </div>
           </main>
 
