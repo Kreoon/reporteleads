@@ -70,10 +70,10 @@ export function StrategicKPIs({ data }: StrategicKPIsProps) {
         variant="primary"
       />
       <KPICard
-        title="Leads Totales"
+        title="Resultados Totales"
         value={totalLeads.toLocaleString()}
         icon={Users}
-        description="Leads capturados"
+        description="Conversiones capturadas"
         variant="success"
       />
       <KPICard
@@ -84,10 +84,10 @@ export function StrategicKPIs({ data }: StrategicKPIsProps) {
         variant="default"
       />
       <KPICard
-        title="CPA Promedio"
+        title="Costo/Resultado"
         value={formatCurrency(avgCPA)}
         icon={Target}
-        description="Costo por adquisición"
+        description="Promedio por conversión"
         variant="warning"
       />
       <KPICard
@@ -101,7 +101,7 @@ export function StrategicKPIs({ data }: StrategicKPIsProps) {
         title="Mejor ROI"
         value={bestCountryByROI?.pais || "N/A"}
         icon={Globe}
-        description={bestCountryByROI ? `${(bestCountryByROI.roi * 1000).toFixed(2)} leads/$K` : "Sin datos"}
+        description={bestCountryByROI ? `${(bestCountryByROI.roi * 1000).toFixed(2)} res/$K` : "Sin datos"}
         variant="success"
       />
     </div>

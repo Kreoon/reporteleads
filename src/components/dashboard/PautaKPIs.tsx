@@ -85,7 +85,7 @@ export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsPr
         compact
       />
       <KPICard
-        title="CPL"
+        title="Costo/Resultado"
         value={`$${avgCPL.toFixed(2)}`}
         icon={Target}
         variant="warning"
