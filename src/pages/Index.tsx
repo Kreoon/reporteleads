@@ -9,9 +9,8 @@ import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
 import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
 import { useMetrics } from "@/hooks/useMetrics";
-import { useDateFilters, parseDate } from "@/hooks/useDateFilters";
+import { parseDate } from "@/hooks/useDateFilters";
 import { Skeleton } from "@/components/ui/skeleton";
-
 
 const COUNTRIES = [
   { code: "EC", name: "Ecuador" },
@@ -24,18 +23,29 @@ const COUNTRIES = [
 const Index = () => {
   const { data, isLoading, lastUpdated, refetch } = useMetrics();
   const [selectedCountry, setSelectedCountry] = useState("EC");
-  
-  const {
-    dateRange,
-    selectedMonth,
-    selectedYear,
-    setDateRange,
-    setSelectedMonth,
-    setSelectedYear,
-    clearFilters,
-    hasActiveFilters,
-    filterDate,
-  } = useDateFilters();
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+
+  const hasActiveFilters = !!(dateRange.from || dateRange.to);
+
+  const clearFilters = () => {
+    setDateRange({ from: undefined, to: undefined });
+  };
+
+  const filterDate = (date: Date | null): boolean => {
+    if (!date) return false;
+    if (!dateRange.from && !dateRange.to) return true;
+
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dateDay = startOfDay(date);
+
+    if (dateRange.from && dateDay < startOfDay(dateRange.from)) return false;
+    if (dateRange.to && dateDay > startOfDay(dateRange.to)) return false;
+
+    return true;
+  };
 
   // Get countries with data
   const countriesWithData = useMemo(() => {
@@ -49,23 +59,18 @@ const Index = () => {
   const filteredRows = useMemo(() => {
     const countryRows = data?.rows?.filter(row => row.pais === selectedCountry) || [];
     
-    // If no date filters active, return all country rows
     if (!hasActiveFilters) return countryRows;
     
     return countryRows.filter(row => {
       const date = parseDate(row.fecha);
-      const passes = filterDate(date);
-      // Debug logging
-      console.log(`[Filter] fecha: "${row.fecha}" -> parsed: ${date?.toISOString()} -> passes: ${passes}, month: ${selectedMonth}, year: ${selectedYear}`);
-      return passes;
+      return filterDate(date);
     });
-  }, [data?.rows, selectedCountry, hasActiveFilters, filterDate, selectedMonth, selectedYear]);
+  }, [data?.rows, selectedCountry, hasActiveFilters, dateRange]);
 
   // Filter and group commercials
   const filteredCommercials = useMemo(() => {
     const countryCommercials = data?.commercials?.filter(row => row.pais === selectedCountry) || [];
     
-    // Apply date filters
     const filtered = hasActiveFilters
       ? countryCommercials.filter(row => {
           const date = parseDate(row.fecha);
@@ -73,7 +78,6 @@ const Index = () => {
         })
       : countryCommercials;
     
-    // Group by commercial name and aggregate
     const grouped = filtered.reduce((acc, row) => {
       const key = row.comercial;
       if (!acc[key]) {
@@ -98,7 +102,7 @@ const Index = () => {
     }, {} as Record<string, typeof filtered[0]>);
     
     return Object.values(grouped);
-  }, [data?.commercials, selectedCountry, hasActiveFilters, filterDate]);
+  }, [data?.commercials, selectedCountry, hasActiveFilters, dateRange]);
 
   const renderPautaContent = () => (
     <>
@@ -114,7 +118,6 @@ const Index = () => {
         )}
       </div>
 
-      {/* Charts + Table in 3-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {isLoading ? (
           <>
@@ -147,7 +150,6 @@ const Index = () => {
         )}
       </div>
 
-      {/* Chart + Table side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {isLoading ? (
           <>
@@ -177,17 +179,12 @@ const Index = () => {
         selectedCountry={selectedCountry}
         onCountryChange={setSelectedCountry}
         dateRange={dateRange}
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
         onDateRangeChange={setDateRange}
-        onMonthChange={setSelectedMonth}
-        onYearChange={setSelectedYear}
         onClearFilters={clearFilters}
         hasActiveFilters={hasActiveFilters}
       />
       
       <main className="container mx-auto px-3 py-4 max-w-[1600px]">
-        {/* Section: Pauta (Marketing Metrics) */}
         <section className="mb-6">
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📈 Métricas de Pauta
@@ -195,7 +192,6 @@ const Index = () => {
           {renderPautaContent()}
         </section>
 
-        {/* Section: Commercials */}
         <section className="mb-6">
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📊 Performance de Comerciales
