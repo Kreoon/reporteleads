@@ -11,8 +11,19 @@ interface ApiPautaResponse {
   Clicks_Total: number;
   CTR_Promedio: number;
   Inversion_Total: number;
-  CPL_Promedio: number;
   Pais: string;
+  Canal?: string;
+  Tipo_Campana?: string;
+  Destino_Funnel?: string;
+  Campana?: string;
+  CPA?: number;
+  CPC?: number;
+  Alcance?: number;
+  Frecuencia?: number;
+  Moneda?: string;
+  id?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ApiCommercialResponse {
@@ -39,6 +50,16 @@ interface MetricRow {
   impresiones?: number;
   clicks?: number;
   pais: string;
+  // New fields from updated API
+  canal?: string;
+  tipoCampana?: string;
+  destinoFunnel?: string;
+  campana?: string;
+  cpa?: number;
+  cpc?: number;
+  alcance?: number;
+  frecuencia?: number;
+  moneda?: string;
 }
 
 interface MetricsData {
@@ -92,19 +113,34 @@ const formatDate = (dateStr: string): string => {
 };
 
 const mapPautaResponse = (data: ApiPautaResponse[]): MetricRow[] => {
-  return data.map((item) => ({
-    // IMPORTANT: keep the raw date string so year/month filters can work (e.g. "21/01/26").
-    // Use fechaRaw for filtering and fecha for display.
-    fecha: item.Fecha,
-    fechaDisplay: formatDate(item.Fecha),
-    leads: item.Leads_Total,
-    inversion: item.Inversion_Total,
-    cpl: item.CPL_Promedio,
-    ctr: item.CTR_Promedio,
-    impresiones: item.Impresiones_Total,
-    clicks: item.Clicks_Total,
-    pais: item.Pais || "EC",
-  }));
+  return data.map((item) => {
+    // Calculate CPL from investment/leads if not provided directly
+    const cpl = item.Leads_Total > 0 
+      ? item.Inversion_Total / item.Leads_Total 
+      : 0;
+    
+    return {
+      fecha: item.Fecha,
+      fechaDisplay: formatDate(item.Fecha),
+      leads: item.Leads_Total,
+      inversion: item.Inversion_Total,
+      cpl: cpl,
+      ctr: item.CTR_Promedio,
+      impresiones: item.Impresiones_Total,
+      clicks: item.Clicks_Total,
+      pais: item.Pais || "EC",
+      // New fields from updated API
+      canal: item.Canal,
+      tipoCampana: item.Tipo_Campana,
+      destinoFunnel: item.Destino_Funnel,
+      campana: item.Campana,
+      cpa: item.CPA,
+      cpc: item.CPC,
+      alcance: item.Alcance,
+      frecuencia: item.Frecuencia,
+      moneda: item.Moneda,
+    };
+  });
 };
 
 const mapCommercialsResponse = (data: ApiCommercialResponse[]): CommercialRow[] => {
