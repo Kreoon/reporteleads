@@ -29,24 +29,37 @@ export const parseDate = (input: string | undefined | null): Date | null => {
   if (!str) return null;
 
   try {
-    // Format: "YYYY-MM-DD" (new webhook format, e.g., "2026-01-21")
-    if (str.includes('-') && !str.includes(' ') && !str.includes('T') && str.length === 10) {
-      const parts = str.split('-');
-      if (parts.length === 3) {
-        const year = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1;
-        const day = parseInt(parts[2], 10);
+    // Format: "YYYY-MM-DD" (new webhook format, e.g., "2026-01-12")
+    // This is the PRIMARY format from the webhook
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      const [yearStr, monthStr, dayStr] = str.split('-');
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10) - 1; // JS months are 0-indexed
+      const day = parseInt(dayStr, 10);
+      
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
         const d = new Date(year, month, day);
-        if (!isNaN(d.getTime())) return d;
+        // Validate the date is valid
+        if (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) {
+          return d;
+        }
       }
     }
 
-    // Format: "YYYY-MM-DD HH:mm:ss.sss" (webhook format with space)
-    // Convert space to T for proper parsing
-    if (str.includes('-') && str.includes(' ') && str.length >= 10) {
-      const normalized = str.replace(' ', 'T');
-      const d = new Date(normalized);
-      if (!isNaN(d.getTime())) return d;
+    // Format: "YYYY-MM-DD HH:mm:ss.sss" (webhook format with space and time)
+    if (/^\d{4}-\d{2}-\d{2}\s/.test(str)) {
+      const datePart = str.split(' ')[0];
+      const [yearStr, monthStr, dayStr] = datePart.split('-');
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10) - 1;
+      const day = parseInt(dayStr, 10);
+      
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+        const d = new Date(year, month, day);
+        if (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) {
+          return d;
+        }
+      }
     }
 
     // ISO 8601 format (e.g., "2025-05-13T05:00:00.000Z")
