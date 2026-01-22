@@ -225,57 +225,61 @@ const StrategicDashboard = () => {
             onRefresh={refetch}
             cpaAlert={cpaAlert}
           />
-          
-          <main className="flex-1 p-4 lg:p-6 overflow-auto">
-            <div className="max-w-[1800px] mx-auto space-y-6">
-              {/* Country Tabs */}
-              <Tabs value={selectedCountry} onValueChange={setSelectedCountry} className="w-full">
-                <TabsList className="mb-4 flex flex-wrap h-auto gap-1">
-                  {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
-                    <TabsTrigger 
-                      key={country.code} 
+
+          {/* Sticky Country Tabs Bar */}
+          <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
+            <div className="container mx-auto px-4 py-3">
+              <Tabs value={selectedCountry} onValueChange={setSelectedCountry}>
+                <TabsList className="grid w-full grid-cols-5 bg-secondary/50">
+                  {COUNTRIES.map((country) => (
+                    <TabsTrigger
+                      key={country.code}
                       value={country.code}
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
                     >
-                      {country.name}
+                      <span className="hidden sm:inline">{country.name}</span>
+                      <span className="sm:hidden">{country.code}</span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
-
-                {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
-                  <TabsContent key={country.code} value={country.code} className="space-y-6">
-                    {/* KPIs Section */}
-                    <section>
-                      <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                          📊 KPIs en Tiempo Real
-                          <span className="text-sm font-normal text-muted-foreground">
-                            (en {targetCurrency})
-                          </span>
-                        </h2>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="group-campaign"
-                              checked={groupByCampaign}
-                              onCheckedChange={setGroupByCampaign}
-                            />
-                            <Label htmlFor="group-campaign" className="text-sm">
-                              Agrupar por campaña
-                            </Label>
-                          </div>
-                        </div>
-                      </div>
-                      {isLoading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                          {[...Array(6)].map((_, i) => (
-                            <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
-                          ))}
-                        </div>
-                      ) : (
-                        <StrategicKPIs data={filteredRows} currency={targetCurrency} />
-                      )}
-                    </section>
+              </Tabs>
+            </div>
+          </div>
+          
+          <main className="flex-1 p-4 lg:p-6 overflow-auto">
+            <div className="max-w-[1800px] mx-auto space-y-6">
+              {/* KPIs Section */}
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    📊 KPIs en Tiempo Real
+                    <span className="text-sm font-normal text-muted-foreground">
+                      (en {targetCurrency})
+                    </span>
+                  </h2>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="group-campaign"
+                        checked={groupByCampaign}
+                        onCheckedChange={setGroupByCampaign}
+                      />
+                      <Label htmlFor="group-campaign" className="text-sm">
+                        Agrupar por campaña
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+                {isLoading ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {[...Array(6)].map((_, i) => (
+                      <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
+                    ))}
+                  </div>
+                ) : (
+                  <StrategicKPIs data={filteredRows} currency={targetCurrency} />
+                )}
+              </section>
 
               {/* Analytics Summary */}
               <section>
@@ -325,9 +329,6 @@ const StrategicDashboard = () => {
                   <PautaTable data={filteredRows} onRefresh={refetch} />
                 )}
               </section>
-                  </TabsContent>
-                ))}
-              </Tabs>
             </div>
           </main>
 
