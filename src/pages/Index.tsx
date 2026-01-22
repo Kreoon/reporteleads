@@ -11,7 +11,7 @@ import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
 import { useMetrics } from "@/hooks/useMetrics";
 import { useDateFilters, parseDate } from "@/hooks/useDateFilters";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 const COUNTRIES = [
   { code: "EC", name: "Ecuador" },
@@ -184,82 +184,20 @@ const Index = () => {
       />
       
       <main className="container mx-auto px-3 py-4 max-w-[1600px]">
-        {/* Section: Pauta (Marketing Metrics) with Tabs by Country */}
+        {/* Section: Pauta (Marketing Metrics) */}
         <section className="mb-6">
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📈 Métricas de Pauta
           </h2>
-
-          <Tabs value={selectedCountry} onValueChange={setSelectedCountry} className="w-full">
-            <TabsList className="mb-4 flex flex-wrap h-auto gap-1">
-              {countriesWithData.length > 0 ? (
-                countriesWithData.map(country => (
-                  <TabsTrigger 
-                    key={country.code} 
-                    value={country.code}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    {country.name}
-                  </TabsTrigger>
-                ))
-              ) : (
-                COUNTRIES.map(country => (
-                  <TabsTrigger 
-                    key={country.code} 
-                    value={country.code}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    {country.name}
-                  </TabsTrigger>
-                ))
-              )}
-            </TabsList>
-            
-            {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
-              <TabsContent key={country.code} value={country.code}>
-                {renderPautaContent()}
-              </TabsContent>
-            ))}
-          </Tabs>
+          {renderPautaContent()}
         </section>
 
-        {/* Section: Commercials with Tabs by Country */}
+        {/* Section: Commercials */}
         <section className="mb-6">
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📊 Performance de Comerciales
           </h2>
-
-          <Tabs value={selectedCountry} onValueChange={setSelectedCountry} className="w-full">
-            <TabsList className="mb-4 flex flex-wrap h-auto gap-1">
-              {countriesWithData.length > 0 ? (
-                countriesWithData.map(country => (
-                  <TabsTrigger 
-                    key={country.code} 
-                    value={country.code}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    {country.name}
-                  </TabsTrigger>
-                ))
-              ) : (
-                COUNTRIES.map(country => (
-                  <TabsTrigger 
-                    key={country.code} 
-                    value={country.code}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    {country.name}
-                  </TabsTrigger>
-                ))
-              )}
-            </TabsList>
-            
-            {(countriesWithData.length > 0 ? countriesWithData : COUNTRIES).map(country => (
-              <TabsContent key={country.code} value={country.code}>
-                {renderCommercialsContent()}
-              </TabsContent>
-            ))}
-          </Tabs>
+          {renderCommercialsContent()}
         </section>
 
         <footer className="text-center py-8 border-t border-border mt-8">
