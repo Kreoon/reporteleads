@@ -53,7 +53,7 @@ export function CPAByCountryChart({ data }: CPAByCountryChartProps) {
     <Card className="glass-card border-border/50">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">
-          CPA por País (Menor = Mejor)
+          Costo/Resultado por País (Menor = Mejor)
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -77,7 +77,7 @@ export function CPAByCountryChart({ data }: CPAByCountryChartProps) {
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "8px",
                 }}
-                formatter={(value: number) => [`$${value.toFixed(2)}`, "CPA"]}
+                formatter={(value: number) => [`$${value.toFixed(2)}`, "Costo/Res"]}
               />
               <Bar dataKey="cpa" radius={[4, 4, 0, 0]}>
                 {chartData.map((_, index) => (

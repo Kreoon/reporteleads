@@ -38,7 +38,7 @@ export function MetricsTable({ data }: MetricsTableProps) {
                 <TableHead className="text-muted-foreground font-semibold text-xs py-2">Fecha</TableHead>
                 <TableHead className="text-muted-foreground font-semibold text-xs text-right py-2">Leads</TableHead>
                 <TableHead className="text-muted-foreground font-semibold text-xs text-right py-2">Inv.</TableHead>
-                <TableHead className="text-muted-foreground font-semibold text-xs text-right py-2">CPL</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs text-right py-2">C/Res</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

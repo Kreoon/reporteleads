@@ -71,7 +71,7 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
       bgColor: "bg-yellow-500/10",
     },
     {
-      title: "Peor CPA",
+      title: "Peor Costo/Resultado",
       value: worstCPARow?.campana || worstCPARow?.pais || "N/A",
       detail: worstCPARow?.cpa ? `$${worstCPARow.cpa.toFixed(2)}` : "",
       icon: AlertCircle,
@@ -79,9 +79,9 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
       bgColor: "bg-red-500/10",
     },
     {
-      title: "País con Más Leads",
+      title: "País con Más Resultados",
       value: topCountry?.[0] || "N/A",
-      detail: topCountry ? `${topCountry[1].toLocaleString()} leads` : "",
+      detail: topCountry ? `${topCountry[1].toLocaleString()} resultados` : "",
       icon: MapPin,
       color: "text-green-500",
       bgColor: "bg-green-500/10",
@@ -89,7 +89,7 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
     {
       title: "Canal Más Rentable",
       value: mostProfitableChannel?.channel || "N/A",
-      detail: mostProfitableChannel ? `${(mostProfitableChannel.efficiency * 1000).toFixed(1)} leads/$K` : "",
+      detail: mostProfitableChannel ? `${(mostProfitableChannel.efficiency * 1000).toFixed(1)} res/$K` : "",
       icon: Zap,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
@@ -97,7 +97,7 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
     {
       title: "Eficiencia General",
       value: `${generalEfficiency.toFixed(2)}`,
-      detail: "Leads por cada $1,000",
+      detail: "Resultados por $1,000",
       icon: TrendingUp,
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",

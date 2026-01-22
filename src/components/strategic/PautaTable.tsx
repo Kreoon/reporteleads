@@ -55,7 +55,7 @@ export function PautaTable({ data, onRefresh }: PautaTableProps) {
       "Clicks",
       "CTR%",
       "Inversión",
-      "CPA",
+      "Costo/Res",
       "CPC",
       "Alcance",
       "Frecuencia",
@@ -131,7 +131,7 @@ export function PautaTable({ data, onRefresh }: PautaTableProps) {
                     <TableHead className="font-semibold text-right">Clicks</TableHead>
                     <TableHead className="font-semibold text-right">CTR%</TableHead>
                     <TableHead className="font-semibold text-right">Inversión</TableHead>
-                    <TableHead className="font-semibold text-right">CPA</TableHead>
+                    <TableHead className="font-semibold text-right">C/Res</TableHead>
                     <TableHead className="font-semibold text-right">CPC</TableHead>
                     <TableHead className="font-semibold text-right">Alcance</TableHead>
                     <TableHead className="font-semibold text-right">Frec.</TableHead>
