@@ -8,10 +8,13 @@ import { InvestmentByChannelChart } from "@/components/strategic/InvestmentByCha
 import { CPAByCountryChart } from "@/components/strategic/CPAByCountryChart";
 import { AnalyticsSummary } from "@/components/strategic/AnalyticsSummary";
 import { StrategicFilters } from "@/components/strategic/StrategicFilters";
-import { useMetrics } from "@/hooks/useMetrics";
+import { useMetrics, MetricRow } from "@/hooks/useMetrics";
 import { parseDate } from "@/hooks/useDateFilters";
+import { useCurrencyConverter } from "@/hooks/useCurrencyConverter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export interface StrategicFiltersState {
   dateFrom: Date | undefined;
@@ -25,6 +28,7 @@ export interface StrategicFiltersState {
 
 const StrategicDashboard = () => {
   const { data, isLoading, lastUpdated, refetch } = useMetrics();
+  const { convert, formatCurrency, getCurrencyForCountry } = useCurrencyConverter();
   
   const [filters, setFilters] = useState<StrategicFiltersState>({
     dateFrom: undefined,
@@ -36,6 +40,9 @@ const StrategicDashboard = () => {
     sortOrder: "desc",
   });
 
+  const [groupByCampaign, setGroupByCampaign] = useState(false);
+  const [targetCurrency, setTargetCurrency] = useState<string>("USD");
+
   // Get unique values for filter options
   const filterOptions = useMemo(() => {
     const rows = data?.rows || [];
@@ -46,7 +53,16 @@ const StrategicDashboard = () => {
     };
   }, [data?.rows]);
 
-  // Filter and sort data
+  // Update target currency when country filter changes
+  useMemo(() => {
+    if (filters.countries.length === 1) {
+      setTargetCurrency(getCurrencyForCountry(filters.countries[0]));
+    } else {
+      setTargetCurrency("USD");
+    }
+  }, [filters.countries, getCurrencyForCountry]);
+
+  // Filter and sort data with optional grouping
   const filteredRows = useMemo(() => {
     let rows = data?.rows || [];
     
@@ -74,6 +90,56 @@ const StrategicDashboard = () => {
     // Campaign type filter
     if (filters.campaignTypes.length > 0) {
       rows = rows.filter(row => row.tipoCampana && filters.campaignTypes.includes(row.tipoCampana));
+    }
+
+    // Convert currencies to target
+    rows = rows.map(row => {
+      const fromCurrency = row.moneda || "USD";
+      if (fromCurrency === targetCurrency) return row;
+      
+      return {
+        ...row,
+        inversion: convert(row.inversion, fromCurrency, targetCurrency),
+        cpl: convert(row.cpl, fromCurrency, targetCurrency),
+        cpa: row.cpa ? convert(row.cpa, fromCurrency, targetCurrency) : undefined,
+        cpc: row.cpc ? convert(row.cpc, fromCurrency, targetCurrency) : undefined,
+        moneda: targetCurrency,
+      };
+    });
+
+    // Group by campaign name if enabled
+    if (groupByCampaign) {
+      const grouped = rows.reduce((acc, row) => {
+        const key = row.campana || row.canal || "Sin campaña";
+        if (!acc[key]) {
+          acc[key] = {
+            ...row,
+            campana: key,
+            leads: 0,
+            inversion: 0,
+            impresiones: 0,
+            clicks: 0,
+            alcance: 0,
+            _count: 0,
+            _ctrSum: 0,
+          };
+        }
+        acc[key].leads += row.leads;
+        acc[key].inversion += row.inversion;
+        acc[key].impresiones = (acc[key].impresiones || 0) + (row.impresiones || 0);
+        acc[key].clicks = (acc[key].clicks || 0) + (row.clicks || 0);
+        acc[key].alcance = (acc[key].alcance || 0) + (row.alcance || 0);
+        acc[key]._count += 1;
+        acc[key]._ctrSum += row.ctr;
+        return acc;
+      }, {} as Record<string, MetricRow & { _count: number; _ctrSum: number }>);
+
+      rows = Object.values(grouped).map(g => ({
+        ...g,
+        ctr: g._ctrSum / g._count,
+        cpl: g.leads > 0 ? g.inversion / g.leads : 0,
+        cpa: g.leads > 0 ? g.inversion / g.leads : undefined,
+      }));
     }
     
     // Sorting
@@ -112,7 +178,7 @@ const StrategicDashboard = () => {
     });
     
     return rows;
-  }, [data?.rows, filters]);
+  }, [data?.rows, filters, groupByCampaign, targetCurrency, convert]);
 
   // Check for CPA alerts (>20% increase)
   const cpaAlert = useMemo(() => {
@@ -153,11 +219,30 @@ const StrategicDashboard = () => {
           
           <main className="flex-1 p-4 lg:p-6 overflow-auto">
             <div className="max-w-[1800px] mx-auto space-y-6">
-              {/* KPIs Section */}
+            {/* KPIs Section */}
               <section>
-                <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                  📊 KPIs en Tiempo Real
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    📊 KPIs en Tiempo Real
+                    {targetCurrency !== "USD" && (
+                      <span className="text-sm font-normal text-muted-foreground">
+                        (en {targetCurrency})
+                      </span>
+                    )}
+                  </h2>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="group-campaign"
+                        checked={groupByCampaign}
+                        onCheckedChange={setGroupByCampaign}
+                      />
+                      <Label htmlFor="group-campaign" className="text-sm">
+                        Agrupar por campaña
+                      </Label>
+                    </div>
+                  </div>
+                </div>
                 {isLoading ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     {[...Array(6)].map((_, i) => (
@@ -165,7 +250,7 @@ const StrategicDashboard = () => {
                     ))}
                   </div>
                 ) : (
-                  <StrategicKPIs data={filteredRows} />
+                  <StrategicKPIs data={filteredRows} currency={targetCurrency} />
                 )}
               </section>
 

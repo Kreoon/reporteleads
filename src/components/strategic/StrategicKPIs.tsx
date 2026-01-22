@@ -1,5 +1,6 @@
 import { DollarSign, Users, MousePointer, Target, TrendingUp, Globe } from "lucide-react";
 import { KPICard } from "@/components/ui/kpi-card";
+import { CURRENCY_SYMBOLS } from "@/hooks/useCurrencyConverter";
 
 interface MetricRow {
   fecha: string;
@@ -15,11 +16,12 @@ interface MetricRow {
   moneda?: string;
 }
 
-interface StrategicKPIsProps {
+export interface StrategicKPIsProps {
   data: MetricRow[];
+  currency?: string;
 }
 
-export function StrategicKPIs({ data }: StrategicKPIsProps) {
+export function StrategicKPIs({ data, currency = "USD" }: StrategicKPIsProps) {
   // Calculate aggregated KPIs
   const totalInversion = data.reduce((sum, row) => sum + row.inversion, 0);
   const totalLeads = data.reduce((sum, row) => sum + row.leads, 0);
@@ -54,10 +56,12 @@ export function StrategicKPIs({ data }: StrategicKPIsProps) {
     }))
     .sort((a, b) => b.roi - a.roi)[0];
 
+  const symbol = CURRENCY_SYMBOLS[currency] || "$";
+
   const formatCurrency = (value: number) => {
-    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    return `$${value.toFixed(2)}`;
+    if (value >= 1000000) return `${symbol}${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${symbol}${(value / 1000).toFixed(1)}K`;
+    return `${symbol}${value.toFixed(2)}`;
   };
 
   return (
