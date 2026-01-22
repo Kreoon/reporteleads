@@ -1,5 +1,7 @@
 import { Trophy, AlertCircle, MapPin, Zap, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { CountryFlag, FLAGS } from "@/components/ui/country-flag";
+import { ChannelLogo } from "@/components/ui/channel-logo";
 
 interface MetricRow {
   fecha: string;
@@ -95,6 +97,7 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
       icon: MapPin,
       color: "text-green-500",
       bgColor: "bg-green-500/10",
+      isCountry: true,
     },
     {
       title: "Canal Más Rentable",
@@ -103,6 +106,7 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
       icon: Zap,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
+      isChannel: true,
     },
     {
       title: "Eficiencia General",
@@ -125,7 +129,15 @@ export function AnalyticsSummary({ data }: AnalyticsSummaryProps) {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mb-1">{card.title}</p>
-            <p className="text-sm font-bold text-foreground truncate">{card.value}</p>
+            <div className="text-sm font-bold text-foreground truncate flex items-center gap-1">
+              {card.isCountry && card.value !== "N/A" && FLAGS[card.value] ? (
+                <CountryFlag code={card.value} showCode size="sm" />
+              ) : card.isChannel && card.value !== "N/A" ? (
+                <ChannelLogo channel={card.value} size="sm" />
+              ) : (
+                card.value
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">{card.detail}</p>
           </CardContent>
         </Card>

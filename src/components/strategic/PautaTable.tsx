@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { EditPautaModal } from "./EditPautaModal";
+import { CountryFlag } from "@/components/ui/country-flag";
+import { ChannelLogo } from "@/components/ui/channel-logo";
 
 interface MetricRow {
   fecha: string;
@@ -146,11 +148,11 @@ export function PautaTable({ data, onRefresh }: PautaTableProps) {
                         {row.fechaDisplay || row.fecha}
                       </TableCell>
                       <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                          {row.pais}
-                        </span>
+                        <CountryFlag code={row.pais} showCode size="sm" />
                       </TableCell>
-                      <TableCell>{row.canal || "-"}</TableCell>
+                      <TableCell>
+                        {row.canal ? <ChannelLogo channel={row.canal} showName size="sm" /> : "-"}
+                      </TableCell>
                       <TableCell className="capitalize">{row.tipoCampana || "-"}</TableCell>
                       <TableCell className="capitalize">{row.destinoFunnel || "-"}</TableCell>
                       <TableCell className="max-w-[150px] truncate">

@@ -16,6 +16,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 const COUNTRIES = [
   { code: "EC", name: "Ecuador" },
@@ -237,8 +238,9 @@ const StrategicDashboard = () => {
                       value={country.code}
                       className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
                     >
-                      <span className="hidden sm:inline">{country.name}</span>
-                      <span className="sm:hidden">{country.code}</span>
+                      <CountryFlag code={country.code} size="md" />
+                      <span className="hidden sm:inline ml-1.5">{country.name}</span>
+                      <span className="sm:hidden ml-1">{country.code}</span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
