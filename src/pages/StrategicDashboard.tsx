@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import { StrategicHeader } from "@/components/strategic/StrategicHeader";
 import { StrategicKPIs } from "@/components/strategic/StrategicKPIs";
 import { PautaTable } from "@/components/strategic/PautaTable";
-import { InvestmentLeadsChart } from "@/components/strategic/InvestmentLeadsChart";
-import { CTRByCountryChart } from "@/components/strategic/CTRByCountryChart";
+import { CostPerResultTrendChart } from "@/components/strategic/CostPerResultTrendChart";
+import { PerformanceByChannelChart } from "@/components/strategic/PerformanceByChannelChart";
 import { InvestmentByChannelChart } from "@/components/strategic/InvestmentByChannelChart";
-import { CPAByCountryChart } from "@/components/strategic/CPAByCountryChart";
+import { PerformanceByCampaignTypeChart } from "@/components/strategic/PerformanceByCampaignTypeChart";
 import { AnalyticsSummary } from "@/components/strategic/AnalyticsSummary";
 import { StrategicFilters } from "@/components/strategic/StrategicFilters";
 import { useMetrics, MetricRow } from "@/hooks/useMetrics";
@@ -312,10 +312,10 @@ const StrategicDashboard = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <InvestmentLeadsChart data={filteredRows} />
-                    <CTRByCountryChart data={filteredRows} />
+                    <CostPerResultTrendChart data={filteredRows} currency={targetCurrency} />
+                    <PerformanceByChannelChart data={filteredRows} currency={targetCurrency} />
                     <InvestmentByChannelChart data={filteredRows} />
-                    <CPAByCountryChart data={filteredRows} />
+                    <PerformanceByCampaignTypeChart data={filteredRows} currency={targetCurrency} />
                   </div>
                 )}
               </section>
