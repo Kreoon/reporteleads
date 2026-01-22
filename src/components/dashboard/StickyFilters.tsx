@@ -2,6 +2,7 @@ import { X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePresetSelector } from "@/components/ui/date-preset-selector";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 interface Country {
   code: string;
@@ -39,8 +40,9 @@ export function StickyFilters({
                 value={country.code}
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
               >
-                <span className="hidden sm:inline">{country.name}</span>
-                <span className="sm:hidden">{country.code}</span>
+                <CountryFlag code={country.code} size="sm" />
+                <span className="hidden sm:inline ml-1.5">{country.name}</span>
+                <span className="sm:hidden ml-1">{country.code}</span>
               </TabsTrigger>
             ))}
           </TabsList>
