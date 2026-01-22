@@ -1,5 +1,6 @@
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import grupoEffiLogo from "@/assets/grupo-effi-logo.jpg";
 import { AddPautaModal } from "./AddPautaModal";
 
@@ -44,6 +45,16 @@ export function Header({ lastUpdated, isLoading, onRefresh }: HeaderProps) {
               </div>
             )}
             <AddPautaModal onSuccess={onRefresh} />
+            <Link to="/estrategico">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Estratégico
+              </Button>
+            </Link>
             <Button 
               variant="outline" 
               size="sm"
