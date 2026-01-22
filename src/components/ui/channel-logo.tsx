@@ -1,36 +1,33 @@
 import { cn } from "@/lib/utils";
 
-// Channel logos using brand colors and icons
-const CHANNEL_CONFIG: Record<string, { icon: string; color: string; bgColor: string }> = {
+// Import channel logos
+import logoMeta from "@/assets/channels/meta.png";
+import logoGoogle from "@/assets/channels/google-ads.webp";
+import logoTikTok from "@/assets/channels/tiktok.webp";
+import logoYouTube from "@/assets/channels/youtube.png";
+import logoDisplay from "@/assets/channels/display.png";
+
+// Channel logos configuration
+const CHANNEL_CONFIG: Record<string, { logo: string; bgColor: string }> = {
   "Meta Ads": {
-    icon: "📘",
-    color: "text-blue-600",
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    logo: logoMeta,
+    bgColor: "bg-blue-50 dark:bg-blue-900/20",
   },
   "Google Ads": {
-    icon: "🔍",
-    color: "text-red-500",
-    bgColor: "bg-red-100 dark:bg-red-900/30",
+    logo: logoGoogle,
+    bgColor: "bg-amber-50 dark:bg-amber-900/20",
   },
   "TikTok Ads": {
-    icon: "🎵",
-    color: "text-pink-500",
-    bgColor: "bg-pink-100 dark:bg-pink-900/30",
+    logo: logoTikTok,
+    bgColor: "bg-gray-100 dark:bg-gray-800",
   },
   "YouTube Ads": {
-    icon: "▶️",
-    color: "text-red-600",
-    bgColor: "bg-red-100 dark:bg-red-900/30",
+    logo: logoYouTube,
+    bgColor: "bg-red-50 dark:bg-red-900/20",
   },
   "Display": {
-    icon: "🖥️",
-    color: "text-purple-500",
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
-  },
-  "LinkedIn Ads": {
-    icon: "💼",
-    color: "text-blue-700",
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    logo: logoDisplay,
+    bgColor: "bg-green-50 dark:bg-green-900/20",
   },
 };
 
@@ -47,38 +44,43 @@ export function ChannelLogo({
   className,
   size = "md" 
 }: ChannelLogoProps) {
-  const config = CHANNEL_CONFIG[channel] || {
-    icon: "📊",
-    color: "text-muted-foreground",
-    bgColor: "bg-secondary",
-  };
+  const config = CHANNEL_CONFIG[channel];
   
-  const sizeClasses = {
-    sm: "text-sm px-1.5 py-0.5",
-    md: "text-base px-2 py-1",
-    lg: "text-lg px-2.5 py-1.5",
+  const containerSizeClasses = {
+    sm: "p-1",
+    md: "p-1.5",
+    lg: "p-2",
   };
 
-  const iconSizeClasses = {
-    sm: "text-sm",
-    md: "text-base",
-    lg: "text-lg",
+  const imageSizeClasses = {
+    sm: "h-4 w-4",
+    md: "h-5 w-5",
+    lg: "h-6 w-6",
   };
+
+  if (!config) {
+    return (
+      <span className={cn("inline-flex items-center gap-1.5 text-muted-foreground text-xs", className)}>
+        {channel}
+      </span>
+    );
+  }
 
   return (
     <span 
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full font-medium",
+        "inline-flex items-center gap-1.5 rounded-lg",
         config.bgColor,
-        config.color,
-        sizeClasses[size],
+        containerSizeClasses[size],
         className
       )}
     >
-      <span className={iconSizeClasses[size]} role="img" aria-label={channel}>
-        {config.icon}
-      </span>
-      {showName && <span className="text-xs">{channel}</span>}
+      <img 
+        src={config.logo} 
+        alt={channel}
+        className={cn(imageSizeClasses[size], "object-contain")}
+      />
+      {showName && <span className="text-xs font-medium text-foreground">{channel}</span>}
     </span>
   );
 }
