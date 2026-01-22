@@ -148,10 +148,10 @@ export function PautaTable({ data, onRefresh }: PautaTableProps) {
                         {row.fechaDisplay || row.fecha}
                       </TableCell>
                       <TableCell>
-                        <CountryFlag code={row.pais} showCode size="sm" />
+                        <CountryFlag code={row.pais} size="sm" />
                       </TableCell>
                       <TableCell>
-                        {row.canal ? <ChannelLogo channel={row.canal} showName size="sm" /> : "-"}
+                        {row.canal ? <ChannelLogo channel={row.canal} size="sm" /> : "-"}
                       </TableCell>
                       <TableCell className="capitalize">{row.tipoCampana || "-"}</TableCell>
                       <TableCell className="capitalize">{row.destinoFunnel || "-"}</TableCell>
