@@ -93,15 +93,19 @@ export function ClientTypeChart({ data }: ClientTypeChartProps) {
             </Pie>
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
+                backgroundColor: "hsl(220 25% 12%)",
+                border: "1px solid hsl(220 20% 25%)",
                 borderRadius: "8px",
-                color: "hsl(var(--foreground))",
+                color: "#ffffff",
                 fontSize: "12px",
+                padding: "8px 12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
               }}
               formatter={(value: number, name: string) => [
-                `${value} (${((value / total) * 100).toFixed(1)}%)`,
-                name,
+                <span key="value" style={{ color: "#ffffff", fontWeight: 500 }}>
+                  {value} clientes ({((value / total) * 100).toFixed(1)}%)
+                </span>,
+                <span key="name" style={{ color: "#a0aec0" }}>{name}</span>,
               ]}
             />
             <Legend

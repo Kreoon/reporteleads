@@ -103,14 +103,23 @@ export function LeadStatusChart({ data }: LeadStatusChartProps) {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
+                backgroundColor: "hsl(220 25% 12%)",
+                border: "1px solid hsl(220 20% 25%)",
                 borderRadius: "8px",
-                color: "hsl(var(--foreground))",
+                color: "#ffffff",
                 fontSize: "12px",
+                padding: "8px 12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
               }}
-              labelStyle={{ color: "hsl(var(--foreground))" }}
-              formatter={(value: number) => [value, "Leads"]}
+              labelStyle={{ color: "#ffffff", fontWeight: 600, marginBottom: "4px" }}
+              formatter={(value: number, name: string) => [
+                <span key="value" style={{ color: "#ffffff", fontWeight: 500 }}>{value} leads</span>,
+                null
+              ]}
+              labelFormatter={(label) => (
+                <span style={{ color: "#ffffff", fontWeight: 600 }}>{label}</span>
+              )}
+              cursor={{ fill: "rgba(255,255,255,0.05)" }}
             />
             <Bar dataKey="value" radius={[0, 4, 4, 0]}>
               {chartData.map((entry, index) => (
