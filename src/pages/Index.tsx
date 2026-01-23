@@ -204,9 +204,9 @@ const Index = () => {
             <p className="text-sm font-medium text-foreground">
               Grupo Effi
             </p>
-            <p className="text-xs text-muted-foreground">
-              © 2025 · Dashboard Captación de Leads · Datos actualizados cada 5 minutos
-            </p>
+          <p className="text-xs text-muted-foreground">
+            © 2025 · Dashboard Captación de Leads · Datos actualizados cada 4 horas
+          </p>
           </div>
         </footer>
       </main>

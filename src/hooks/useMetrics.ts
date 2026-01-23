@@ -171,7 +171,8 @@ const mapCommercialsResponse = (data: ApiCommercialResponse[]): CommercialRow[] 
     }));
 };
 
-export function useMetrics(refreshInterval = 300000) {
+// 4 hours in milliseconds (4 * 60 * 60 * 1000 = 14400000)
+export function useMetrics(refreshInterval = 14400000) {
   const [data, setData] = useState<MetricsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
