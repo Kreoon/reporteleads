@@ -38,6 +38,16 @@ interface ApiCommercialResponse {
   Fecha?: string; // Optional date field
   createdAt?: string;
   updatedAt?: string;
+  // Additional lead status fields
+  Proceso_de_Cierre?: number;
+  Cliente_registrado?: number;
+  No_interesado?: number;
+  // Client type fields
+  Mercaderia_Propia?: number;
+  Free_Ecommerce?: number;
+  Dropshipping?: number;
+  Servicios_Effi?: number;
+  Mixto?: number;
 }
 
 export interface MetricRow {
@@ -78,7 +88,24 @@ const FALLBACK_PAUTA: MetricRow[] = [
 ];
 
 const FALLBACK_COMMERCIALS: CommercialRow[] = [
-  { comercial: "Alejandro", pais: "EC", contactos: 38, cuentasCerradas: 5, cuentasGestion: 12, cuentasPendiente: 15, cuentasDescartadas: 6, montoTotal: 627.90 },
+  { 
+    comercial: "Alejandro", 
+    pais: "EC", 
+    contactos: 38, 
+    cuentasCerradas: 5, 
+    cuentasGestion: 12, 
+    cuentasPendiente: 15, 
+    cuentasDescartadas: 6, 
+    montoTotal: 627.90,
+    procesoCierre: 0,
+    clienteRegistrado: 0,
+    noInteresado: 0,
+    mercaderiaPropia: 0,
+    freeEcommerce: 0,
+    dropshipping: 0,
+    serviciosEffi: 0,
+    mixto: 0,
+  },
 ];
 
 const formatDate = (dateStr: string): string => {
@@ -168,6 +195,16 @@ const mapCommercialsResponse = (data: ApiCommercialResponse[]): CommercialRow[] 
       // Formatting ("21 Ene") drops the year and breaks year-based filters.
       fecha: item.Fecha ? item.Fecha : undefined,
       createdAt: item.createdAt,
+      // Additional lead status fields
+      procesoCierre: item.Proceso_de_Cierre ?? 0,
+      clienteRegistrado: item.Cliente_registrado ?? 0,
+      noInteresado: item.No_interesado ?? 0,
+      // Client type fields
+      mercaderiaPropia: item.Mercaderia_Propia ?? 0,
+      freeEcommerce: item.Free_Ecommerce ?? 0,
+      dropshipping: item.Dropshipping ?? 0,
+      serviciosEffi: item.Servicios_Effi ?? 0,
+      mixto: item.Mixto ?? 0,
     }));
 };
 
