@@ -8,6 +8,8 @@ import { MetricsTable } from "@/components/dashboard/MetricsTable";
 import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
 import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
+import { LeadStatusChart } from "@/components/dashboard/LeadStatusChart";
+import { ClientTypeChart } from "@/components/dashboard/ClientTypeChart";
 import { useMetrics } from "@/hooks/useMetrics";
 import { parseDate } from "@/hooks/useDateFilters";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -90,6 +92,14 @@ const Index = () => {
           cuentasPendiente: 0,
           cuentasDescartadas: 0,
           montoTotal: 0,
+          procesoCierre: 0,
+          clienteRegistrado: 0,
+          noInteresado: 0,
+          mercaderiaPropia: 0,
+          freeEcommerce: 0,
+          dropshipping: 0,
+          serviciosEffi: 0,
+          mixto: 0,
         };
       }
       acc[key].contactos += row.contactos;
@@ -98,6 +108,14 @@ const Index = () => {
       acc[key].cuentasPendiente += row.cuentasPendiente;
       acc[key].cuentasDescartadas += row.cuentasDescartadas;
       acc[key].montoTotal += row.montoTotal;
+      acc[key].procesoCierre += row.procesoCierre ?? 0;
+      acc[key].clienteRegistrado += row.clienteRegistrado ?? 0;
+      acc[key].noInteresado += row.noInteresado ?? 0;
+      acc[key].mercaderiaPropia += row.mercaderiaPropia ?? 0;
+      acc[key].freeEcommerce += row.freeEcommerce ?? 0;
+      acc[key].dropshipping += row.dropshipping ?? 0;
+      acc[key].serviciosEffi += row.serviciosEffi ?? 0;
+      acc[key].mixto += row.mixto ?? 0;
       return acc;
     }, {} as Record<string, typeof filtered[0]>);
     
@@ -147,6 +165,20 @@ const Index = () => {
           </div>
         ) : (
           <CommercialsKPIs data={filteredCommercials} />
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+            <Skeleton className="h-[280px] rounded-xl bg-secondary" />
+          </>
+        ) : (
+          <>
+            <LeadStatusChart data={filteredCommercials} />
+            <ClientTypeChart data={filteredCommercials} />
+          </>
         )}
       </div>
 
