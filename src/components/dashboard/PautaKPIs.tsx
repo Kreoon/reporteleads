@@ -35,37 +35,44 @@ interface CommercialRow {
 interface PautaKPIsProps {
   data: MetricRow[];
   commercialsData?: CommercialRow[];
+  previousData?: MetricRow[];
   isLoading?: boolean;
 }
 
-export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsProps) {
-  // Aggregate totals from pauta
+function calcDelta(current: number, previous: number): number | null {
+  if (previous === 0) return null;
+  return ((current - previous) / previous) * 100;
+}
+
+export function PautaKPIs({ data, commercialsData = [], previousData, isLoading }: PautaKPIsProps) {
   const totalLeads = data.reduce((acc, row) => acc + row.leads, 0);
   const totalInversion = data.reduce((acc, row) => acc + row.inversion, 0);
   const totalImpresiones = data.reduce((acc, row) => acc + (row.impresiones || 0), 0);
   const totalClicks = data.reduce((acc, row) => acc + (row.clicks || 0), 0);
-
-  // Aggregate revenue from commercials (real closed deals)
   const totalRevenue = commercialsData.reduce((acc, row) => acc + row.montoTotal, 0);
 
-  // Averages
   const avgCPL = data.length > 0 && totalLeads > 0 ? totalInversion / totalLeads : 0;
   const avgCTR = data.length > 0 ? data.reduce((acc, row) => acc + row.ctr, 0) / data.length : 0;
-
-  // REAL ROAS: Revenue from closed deals / Ad Investment
   const roas = totalInversion > 0 ? totalRevenue / totalInversion : 0;
-
-  // Cost per Click (CPC)
   const cpc = totalClicks > 0 ? totalInversion / totalClicks : 0;
-
-  // Conversion Rate (Clicks to Leads)
   const conversionRate = totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0;
 
-  // Cost per Mille (CPM)
-  const cpm = totalImpresiones > 0 ? (totalInversion / totalImpresiones) * 1000 : 0;
+  // Métricas del período anterior para tendencias
+  const prevLeads = previousData ? previousData.reduce((acc, r) => acc + r.leads, 0) : 0;
+  const prevInversion = previousData ? previousData.reduce((acc, r) => acc + r.inversion, 0) : 0;
+  const prevCPL = previousData && previousData.length > 0 && prevLeads > 0 ? prevInversion / prevLeads : 0;
+  const prevCTR = previousData && previousData.length > 0
+    ? previousData.reduce((acc, r) => acc + r.ctr, 0) / previousData.length
+    : 0;
+
+  const hasPrevious = previousData && previousData.length > 0;
+  const leadsΔ = hasPrevious ? calcDelta(totalLeads, prevLeads) : null;
+  const inversionΔ = hasPrevious ? calcDelta(totalInversion, prevInversion) : null;
+  const cplΔ = hasPrevious ? calcDelta(avgCPL, prevCPL) : null;
+  const ctrΔ = hasPrevious ? calcDelta(avgCTR, prevCTR) : null;
 
   if (isLoading) {
-    return null; // Parent handles skeleton
+    return null;
   }
 
   return (
@@ -76,6 +83,7 @@ export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsPr
         icon={Users}
         variant="primary"
         compact
+        trend={leadsΔ !== null ? { value: Math.abs(leadsΔ), isPositive: leadsΔ > 0 } : undefined}
       />
       <KPICard
         title="Inversión"
@@ -83,6 +91,7 @@ export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsPr
         icon={DollarSign}
         variant="success"
         compact
+        trend={inversionΔ !== null ? { value: Math.abs(inversionΔ), isPositive: inversionΔ < 0 } : undefined}
       />
       <KPICard
         title="Costo/Resultado"
@@ -90,6 +99,7 @@ export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsPr
         icon={Target}
         variant="warning"
         compact
+        trend={cplΔ !== null ? { value: Math.abs(cplΔ), isPositive: cplΔ < 0 } : undefined}
       />
       <KPICard
         title="CTR"
@@ -97,6 +107,7 @@ export function PautaKPIs({ data, commercialsData = [], isLoading }: PautaKPIsPr
         icon={MousePointerClick}
         variant="default"
         compact
+        trend={ctrΔ !== null ? { value: Math.abs(ctrΔ), isPositive: ctrΔ > 0 } : undefined}
       />
       <KPICard
         title="ROAS"

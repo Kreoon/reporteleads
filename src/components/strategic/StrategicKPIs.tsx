@@ -1,6 +1,7 @@
-import { DollarSign, Users, MousePointer, Target, TrendingUp, Globe } from "lucide-react";
+import { DollarSign, Users, MousePointer, Target, TrendingUp, Globe, Radio } from "lucide-react";
 import { KPICard } from "@/components/ui/kpi-card";
 import { CURRENCY_SYMBOLS } from "@/hooks/useCurrencyConverter";
+import { CommercialRow } from "@/hooks/useCommercials";
 
 interface MetricRow {
   fecha: string;
@@ -10,6 +11,8 @@ interface MetricRow {
   ctr: number;
   impresiones?: number;
   clicks?: number;
+  alcance?: number;
+  frecuencia?: number;
   pais: string;
   cpa?: number;
   canal?: string;
@@ -19,27 +22,35 @@ interface MetricRow {
 export interface StrategicKPIsProps {
   data: MetricRow[];
   currency?: string;
+  commercialsData?: CommercialRow[];
 }
 
-export function StrategicKPIs({ data, currency = "USD" }: StrategicKPIsProps) {
-  // Calculate aggregated KPIs
+export function StrategicKPIs({ data, currency = "USD", commercialsData = [] }: StrategicKPIsProps) {
   const totalInversion = data.reduce((sum, row) => sum + row.inversion, 0);
   const totalLeads = data.reduce((sum, row) => sum + row.leads, 0);
   const totalImpresiones = data.reduce((sum, row) => sum + (row.impresiones || 0), 0);
   const totalClicks = data.reduce((sum, row) => sum + (row.clicks || 0), 0);
-  
-  // Weighted average CTR
-  const avgCTR = totalImpresiones > 0 
-    ? (totalClicks / totalImpresiones) * 100 
+  const totalAlcance = data.reduce((sum, row) => sum + (row.alcance || 0), 0);
+
+  const avgCTR = totalImpresiones > 0
+    ? (totalClicks / totalImpresiones) * 100
     : 0;
-  
-  // Average CPA
+
   const avgCPA = totalLeads > 0 ? totalInversion / totalLeads : 0;
-  
-  // ROAS calculation (simplified - would need revenue data for real ROAS)
-  const roas = totalInversion > 0 ? (totalLeads * avgCPA * 1.5) / totalInversion : 0; // Estimated
-  
-  // ROI by Country
+
+  // Frecuencia: impresiones/alcance si hay alcance, fallback a promedio simple del campo
+  const avgFrecuencia = totalAlcance > 0
+    ? totalImpresiones / totalAlcance
+    : data.length > 0
+      ? data.reduce((acc, r) => acc + (r.frecuencia ?? 0), 0) / data.length
+      : 0;
+
+  // ROAS real: ingresos registrados de ventas / inversión total
+  const totalRevenue = commercialsData.reduce((sum, r) => sum + r.montoTotal, 0);
+  const roas = totalInversion > 0 && totalRevenue > 0
+    ? totalRevenue / totalInversion
+    : null;
+
   const countryStats = data.reduce((acc, row) => {
     if (!acc[row.pais]) {
       acc[row.pais] = { leads: 0, inversion: 0 };
@@ -48,7 +59,7 @@ export function StrategicKPIs({ data, currency = "USD" }: StrategicKPIsProps) {
     acc[row.pais].inversion += row.inversion;
     return acc;
   }, {} as Record<string, { leads: number; inversion: number }>);
-  
+
   const bestCountryByROI = Object.entries(countryStats)
     .map(([pais, stats]) => ({
       pais,
@@ -65,7 +76,7 @@ export function StrategicKPIs({ data, currency = "USD" }: StrategicKPIsProps) {
   };
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
       <KPICard
         title="Inversión Total"
         value={formatCurrency(totalInversion)}
@@ -95,11 +106,15 @@ export function StrategicKPIs({ data, currency = "USD" }: StrategicKPIsProps) {
         variant="warning"
       />
       <KPICard
-        title="ROAS Estimado"
-        value={`${roas.toFixed(2)}x`}
+        title="ROAS Real"
+        value={roas !== null ? `${roas.toFixed(2)}x` : "Sin datos"}
         icon={TrendingUp}
-        description="Retorno sobre inversión"
-        variant="primary"
+        description={
+          roas !== null
+            ? roas >= 1 ? "Campaña rentable" : "Por debajo del umbral"
+            : "Sin ingresos registrados"
+        }
+        variant={roas === null ? "default" : roas >= 1 ? "success" : "warning"}
       />
       <KPICard
         title="Mejor ROI"
@@ -107,6 +122,13 @@ export function StrategicKPIs({ data, currency = "USD" }: StrategicKPIsProps) {
         icon={Globe}
         description={bestCountryByROI ? `${(bestCountryByROI.roi * 1000).toFixed(2)} res/$K` : "Sin datos"}
         variant="success"
+      />
+      <KPICard
+        title="Frecuencia Prom."
+        value={data.length > 0 ? avgFrecuencia.toFixed(2) : "N/A"}
+        icon={Radio}
+        description={avgFrecuencia > 3 ? "Posible fatiga creativa" : "Nivel saludable"}
+        variant={avgFrecuencia > 3 ? "warning" : "default"}
       />
     </div>
   );

@@ -4,13 +4,15 @@ import { StickyFilters } from "@/components/dashboard/StickyFilters";
 import { PautaKPIs } from "@/components/dashboard/PautaKPIs";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
 import { LeadsPautaVsCommercialsChart } from "@/components/dashboard/LeadsPautaVsCommercialsChart";
+import { SalesFunnelChart } from "@/components/dashboard/SalesFunnelChart";
+import { AlertBanner } from "@/components/dashboard/AlertBanner";
 import { MetricsTable } from "@/components/dashboard/MetricsTable";
 import { CommercialsTable } from "@/components/dashboard/CommercialsTable";
 import { CommercialsChart } from "@/components/dashboard/CommercialsChart";
 import { CommercialsKPIs } from "@/components/dashboard/CommercialsKPIs";
 import { LeadStatusChart } from "@/components/dashboard/LeadStatusChart";
 import { ClientTypeChart } from "@/components/dashboard/ClientTypeChart";
-import { useMetrics } from "@/hooks/useMetrics";
+import { useSupabaseMetrics } from "@/hooks/useSupabaseMetrics";
 import { parseDate } from "@/hooks/useDateFilters";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -23,7 +25,7 @@ const COUNTRIES = [
 ];
 
 const Index = () => {
-  const { data, isLoading, lastUpdated, refetch } = useMetrics();
+  const { data, isLoading } = useSupabaseMetrics();
   const [selectedCountry, setSelectedCountry] = useState("EC");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
@@ -122,6 +124,26 @@ const Index = () => {
     return Object.values(grouped);
   }, [data?.commercials, selectedCountry, hasActiveFilters, dateRange]);
 
+  // Período anterior de igual duración para mostrar tendencias en KPIs
+  const previousPeriodRows = useMemo(() => {
+    if (dateRange.from && dateRange.to) {
+      const duration = dateRange.to.getTime() - dateRange.from.getTime();
+      const prevTo = new Date(dateRange.from.getTime() - 24 * 60 * 60 * 1000);
+      const prevFrom = new Date(prevTo.getTime() - duration);
+      const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      return (data?.rows?.filter(row => row.pais === selectedCountry) || []).filter(row => {
+        const date = parseDate(row.fecha);
+        if (!date) return false;
+        return startOfDay(date) >= startOfDay(prevFrom) && startOfDay(date) <= startOfDay(prevTo);
+      });
+    }
+    // Sin filtro de fechas: la mitad más antigua como período de referencia
+    const countryRows = data?.rows?.filter(row => row.pais === selectedCountry) || [];
+    if (countryRows.length < 2) return [];
+    const sorted = [...countryRows].sort((a, b) => b.fecha.localeCompare(a.fecha));
+    return sorted.slice(Math.ceil(sorted.length / 2));
+  }, [data?.rows, selectedCountry, dateRange]);
+
   const renderPautaContent = () => (
     <>
       <div className="mb-4">
@@ -132,7 +154,7 @@ const Index = () => {
             ))}
           </div>
         ) : (
-          <PautaKPIs data={filteredRows} commercialsData={filteredCommercials} />
+          <PautaKPIs data={filteredRows} commercialsData={filteredCommercials} previousData={previousPeriodRows} />
         )}
       </div>
 
@@ -146,7 +168,7 @@ const Index = () => {
         ) : (
           <>
             <LeadsChart data={filteredRows} />
-            <LeadsPautaVsCommercialsChart pautaData={filteredRows} commercialsData={filteredCommercials} />
+            <SalesFunnelChart pautaData={filteredRows} commercialsData={filteredCommercials} />
             <MetricsTable data={filteredRows} />
           </>
         )}
@@ -200,11 +222,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
-        lastUpdated={lastUpdated} 
-        isLoading={isLoading} 
-        onRefresh={refetch} 
-      />
+      <Header />
       
       <StickyFilters
         countries={COUNTRIES}
@@ -221,6 +239,9 @@ const Index = () => {
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             📈 Métricas de Pauta
           </h2>
+          {!isLoading && (
+            <AlertBanner pautaData={filteredRows} commercialsData={filteredCommercials} />
+          )}
           {renderPautaContent()}
         </section>
 

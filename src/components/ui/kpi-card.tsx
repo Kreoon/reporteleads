@@ -53,6 +53,15 @@ export function KPICard({ title, value, icon: Icon, trend, variant = "default", 
             )}>
               {value}
             </p>
+            {trend && (
+              <div className={cn(
+                "flex items-center gap-0.5 text-[10px] font-medium",
+                trend.isPositive ? "text-[hsl(var(--success))]" : "text-destructive"
+              )}>
+                <span>{trend.isPositive ? "↑" : "↓"}</span>
+                <span>{Math.abs(trend.value).toFixed(1)}%</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

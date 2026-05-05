@@ -1,4 +1,4 @@
-import { RefreshCw, AlertTriangle, FileDown, BarChart3 } from "lucide-react";
+import { AlertTriangle, FileDown, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
@@ -6,13 +6,11 @@ import grupoEffiLogo from "@/assets/grupo-effi-logo.jpg";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface StrategicHeaderProps {
-  lastUpdated: Date | null;
-  isLoading: boolean;
-  onRefresh: () => void;
   cpaAlert: { increase: string; current: number; previous: number } | null;
+  frecuenciaAlert?: number | null;
 }
 
-export function StrategicHeader({ lastUpdated, isLoading, onRefresh, cpaAlert }: StrategicHeaderProps) {
+export function StrategicHeader({ cpaAlert, frecuenciaAlert }: StrategicHeaderProps) {
   const handleExportCSV = () => {
     // This will be handled by PautaTable component
     const event = new CustomEvent('export-csv');
@@ -44,18 +42,9 @@ export function StrategicHeader({ lastUpdated, isLoading, onRefresh, cpaAlert }:
             </div>
             
             <div className="flex items-center gap-2 sm:gap-3">
-              {lastUpdated && (
-                <div className="hidden md:flex flex-col items-end">
-                  <p className="text-xs text-white/60">Última actualización</p>
-                  <p className="text-sm font-medium text-white">
-                    {lastUpdated.toLocaleTimeString()}
-                  </p>
-                </div>
-              )}
-              
               <Link to="/">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
                 >
@@ -63,26 +52,15 @@ export function StrategicHeader({ lastUpdated, isLoading, onRefresh, cpaAlert }:
                   <span className="hidden sm:inline">Dashboard Principal</span>
                 </Button>
               </Link>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={handleExportCSV}
                 className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
               >
                 <FileDown className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Exportar CSV</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={onRefresh}
-                disabled={isLoading}
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
-              >
-                <RefreshCw className={`w-4 h-4 sm:mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Actualizar</span>
               </Button>
             </div>
           </div>
@@ -91,7 +69,15 @@ export function StrategicHeader({ lastUpdated, isLoading, onRefresh, cpaAlert }:
             <Alert variant="destructive" className="bg-red-500/20 border-red-500/50 text-white">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                ⚠️ Alerta: CPA aumentó {cpaAlert.increase}% (de ${cpaAlert.previous.toFixed(2)} a ${cpaAlert.current.toFixed(2)})
+                ⚠️ Alerta CPA: aumentó {cpaAlert.increase}% (de ${cpaAlert.previous.toFixed(2)} a ${cpaAlert.current.toFixed(2)})
+              </AlertDescription>
+            </Alert>
+          )}
+          {frecuenciaAlert && frecuenciaAlert > 3.5 && (
+            <Alert className="bg-orange-500/20 border-orange-500/50 text-white">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                ⚠️ Alerta Frecuencia: {frecuenciaAlert.toFixed(2)}x — El público ha visto el anuncio demasiadas veces. Considera renovar los creativos.
               </AlertDescription>
             </Alert>
           )}

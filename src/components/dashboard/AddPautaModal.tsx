@@ -29,8 +29,7 @@ import { es } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const WEBHOOK_URL = "https://n8n.grupoeffi.com/webhook-test/agregar-pauta";
+import { supabase } from "@/lib/supabase";
 
 const COUNTRIES = [
   { code: "EC", name: "Ecuador" },
@@ -78,7 +77,7 @@ const CURRENCIES = [
 ];
 
 interface AddPautaModalProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
@@ -166,42 +165,34 @@ export function AddPautaModal({ onSuccess }: AddPautaModalProps) {
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        Fecha: fecha ? format(fecha, "yyyy-MM-dd") : "",
-        Pais: pais,
-        Canal: canal,
-        Tipo_Campana: tipoCampana,
-        Destino_Funnel: destinoFunnel,
-        Campana: campana.trim(),
-        Impresiones_Total: parseInt(impresiones, 10),
-        Clicks_Total: parseInt(clicks, 10),
-        CTR_Promedio: parseFloat(ctr),
-        Inversion_Total: parseFloat(inversion),
-        Moneda: moneda,
-        CPC: parseFloat(cpc),
-        Alcance: alcance ? parseInt(alcance, 10) : 0,
-        Frecuencia: frecuencia ? parseFloat(frecuencia) : 0,
-        Conversiones: conversiones ? parseInt(conversiones, 10) : 0,
-        CPA: parseFloat(cpa),
-      };
-
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const { error } = await supabase.from("pauta_metricas").insert({
+        fecha: fecha ? format(fecha, "yyyy-MM-dd") : "",
+        pais: pais as "EC" | "GT" | "COL" | "RD" | "CR",
+        canal,
+        tipo_campana: tipoCampana,
+        destino_funnel: destinoFunnel,
+        campana: campana.trim(),
+        impresiones_total: parseInt(impresiones, 10),
+        clicks_total: parseInt(clicks, 10),
+        ctr_promedio: parseFloat(ctr),
+        inversion_total: parseFloat(inversion),
+        moneda: moneda as "USD" | "COP" | "GTQ" | "DOP" | "CRC",
+        cpc: parseFloat(cpc),
+        alcance: alcance ? parseInt(alcance, 10) : 0,
+        frecuencia: frecuencia ? parseFloat(frecuencia) : 0,
+        leads_total: conversiones ? parseInt(conversiones, 10) : 0,
+        cpa: parseFloat(cpa),
       });
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
+      if (error) throw error;
 
       toast.success("Pauta agregada exitosamente");
       resetForm();
       setOpen(false);
-      onSuccess();
+      onSuccess?.();
     } catch (error) {
-      console.error("Error submitting pauta:", error);
-      toast.error("Error al enviar los datos. Intenta de nuevo.");
+      console.error("Error al guardar pauta:", error);
+      toast.error("Error al guardar los datos. Intenta de nuevo.");
     } finally {
       setIsSubmitting(false);
     }

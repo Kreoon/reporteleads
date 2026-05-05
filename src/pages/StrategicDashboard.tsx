@@ -7,8 +7,12 @@ import { PerformanceByChannelChart } from "@/components/strategic/PerformanceByC
 import { InvestmentByChannelChart } from "@/components/strategic/InvestmentByChannelChart";
 import { PerformanceByCampaignTypeChart } from "@/components/strategic/PerformanceByCampaignTypeChart";
 import { AnalyticsSummary } from "@/components/strategic/AnalyticsSummary";
+import { PerformanceByFunnelChart } from "@/components/strategic/PerformanceByFunnelChart";
+import { CountryComparisonChart } from "@/components/strategic/CountryComparisonChart";
 import { StrategicFilters } from "@/components/strategic/StrategicFilters";
-import { useMetrics, MetricRow } from "@/hooks/useMetrics";
+import { useSupabaseMetrics } from "@/hooks/useSupabaseMetrics";
+import { MetricRow } from "@/hooks/useMetrics";
+import { CommercialRow } from "@/hooks/useCommercials";
 import { parseDate } from "@/hooks/useDateFilters";
 import { useCurrencyConverter } from "@/hooks/useCurrencyConverter";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +41,7 @@ export interface StrategicFiltersState {
 }
 
 const StrategicDashboard = () => {
-  const { data, isLoading, lastUpdated, refetch } = useMetrics();
+  const { data, isLoading } = useSupabaseMetrics();
   const { convert, getCurrencyForCountry } = useCurrencyConverter();
   
   const [selectedCountry, setSelectedCountry] = useState("EC");
@@ -190,6 +194,47 @@ const StrategicDashboard = () => {
     return rows;
   }, [data?.rows, selectedCountry, filters, groupByCampaign, targetCurrency, convert]);
 
+  // Todos los países filtrados solo por fecha (para comparativa multi-país)
+  const allCountriesRows = useMemo(() => {
+    let rows = data?.rows || [];
+    if (filters.dateFrom || filters.dateTo) {
+      rows = rows.filter(row => {
+        const rowDate = parseDate(row.fecha);
+        if (!rowDate) return true;
+        if (filters.dateFrom && rowDate < filters.dateFrom) return false;
+        if (filters.dateTo && rowDate > filters.dateTo) return false;
+        return true;
+      });
+    }
+    return rows;
+  }, [data?.rows, filters.dateFrom, filters.dateTo]);
+
+  // Comerciales filtrados por país y fecha (para ROAS real)
+  const filteredCommercials = useMemo((): CommercialRow[] => {
+    let rows = (data?.commercials || []).filter(row => row.pais === selectedCountry);
+    if (filters.dateFrom || filters.dateTo) {
+      rows = rows.filter(row => {
+        if (!row.fecha) return true;
+        const rowDate = parseDate(row.fecha);
+        if (!rowDate) return true;
+        if (filters.dateFrom && rowDate < filters.dateFrom) return false;
+        if (filters.dateTo && rowDate > filters.dateTo) return false;
+        return true;
+      });
+    }
+    return rows;
+  }, [data?.commercials, selectedCountry, filters.dateFrom, filters.dateTo]);
+
+  // Frecuencia promedio para alerta (calculada sobre los rows filtrados antes de agrupar)
+  const avgFrecuenciaForAlert = useMemo(() => {
+    const rows = filteredRows;
+    if (rows.length === 0) return 0;
+    const totalAlcance = rows.reduce((sum, r) => sum + (r.alcance || 0), 0);
+    const totalImpresiones = rows.reduce((sum, r) => sum + (r.impresiones || 0), 0);
+    if (totalAlcance > 0) return totalImpresiones / totalAlcance;
+    return rows.reduce((acc, r) => acc + (r.frecuencia || 0), 0) / rows.length;
+  }, [filteredRows]);
+
   // Check for CPA alerts (>20% increase)
   const cpaAlert = useMemo(() => {
     if (filteredRows.length < 2) return null;
@@ -221,10 +266,8 @@ const StrategicDashboard = () => {
         
         <div className="flex-1 flex flex-col min-w-0">
           <StrategicHeader
-            lastUpdated={lastUpdated}
-            isLoading={isLoading}
-            onRefresh={refetch}
             cpaAlert={cpaAlert}
+            frecuenciaAlert={avgFrecuenciaForAlert}
           />
 
           {/* Sticky Country Tabs Bar */}
@@ -273,15 +316,22 @@ const StrategicDashboard = () => {
                   </div>
                 </div>
                 {isLoading ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                    {[...Array(6)].map((_, i) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                    {[...Array(7)].map((_, i) => (
                       <Skeleton key={i} className="h-28 rounded-xl bg-secondary" />
                     ))}
                   </div>
                 ) : (
-                  <StrategicKPIs data={filteredRows} currency={targetCurrency} />
+                  <StrategicKPIs data={filteredRows} currency={targetCurrency} commercialsData={filteredCommercials} />
                 )}
               </section>
+
+              {/* Multi-Country Comparison */}
+              {!isLoading && allCountriesRows.length > 0 && (
+                <section>
+                  <CountryComparisonChart allRows={allCountriesRows} />
+                </section>
+              )}
 
               {/* Analytics Summary */}
               <section>
@@ -316,6 +366,7 @@ const StrategicDashboard = () => {
                     <PerformanceByChannelChart data={filteredRows} currency={targetCurrency} />
                     <InvestmentByChannelChart data={filteredRows} />
                     <PerformanceByCampaignTypeChart data={filteredRows} currency={targetCurrency} />
+                    <PerformanceByFunnelChart data={filteredRows} currency={targetCurrency} />
                   </div>
                 )}
               </section>
@@ -328,7 +379,7 @@ const StrategicDashboard = () => {
                 {isLoading ? (
                   <Skeleton className="h-[400px] rounded-xl bg-secondary" />
                 ) : (
-                  <PautaTable data={filteredRows} onRefresh={refetch} />
+                  <PautaTable data={filteredRows} />
                 )}
               </section>
             </div>

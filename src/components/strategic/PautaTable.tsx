@@ -37,7 +37,7 @@ interface MetricRow {
 
 interface PautaTableProps {
   data: MetricRow[];
-  onRefresh: () => void;
+  onRefresh?: () => void;
 }
 
 export function PautaTable({ data, onRefresh }: PautaTableProps) {
