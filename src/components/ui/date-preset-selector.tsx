@@ -100,19 +100,23 @@ export function DatePresetSelector({
         <div className="flex">
           {/* Preset List */}
           <div className="border-r border-border p-2 min-w-[160px]">
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {DATE_PRESETS.map((preset) => (
-                <button
-                  key={preset.value}
-                  onClick={() => handlePresetSelect(preset.value)}
-                  className={cn(
-                    "w-full text-left px-3 py-2 text-sm rounded-md transition-colors",
-                    "hover:bg-accent hover:text-accent-foreground",
-                    selectedPreset === preset.value && "bg-primary text-primary-foreground"
+                <div key={preset.value}>
+                  {preset.dividerBefore && (
+                    <div className="my-1 border-t border-border" />
                   )}
-                >
-                  {preset.label}
-                </button>
+                  <button
+                    onClick={() => handlePresetSelect(preset.value)}
+                    className={cn(
+                      "w-full text-left px-3 py-1.5 text-sm rounded-md transition-colors",
+                      "hover:bg-accent hover:text-accent-foreground",
+                      selectedPreset === preset.value && "bg-primary text-primary-foreground"
+                    )}
+                  >
+                    {preset.label}
+                  </button>
+                </div>
               ))}
             </div>
             {dateRange.from && (

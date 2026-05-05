@@ -42,17 +42,20 @@ export function useCurrencyConverter(): UseCurrencyConverterReturn {
   const fetchRates = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Using ExchangeRate-API (free tier - 1500 requests/month)
-      const response = await fetch(
-        "https://api.exchangerate-api.com/v4/latest/USD"
-      );
-      
+      const apiKey = import.meta.env.VITE_EXCHANGE_RATE_API_KEY;
+      const url = apiKey
+        ? `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`
+        : "https://api.exchangerate-api.com/v4/latest/USD";
+
+      const response = await fetch(url);
+
       if (!response.ok) {
         throw new Error("Failed to fetch exchange rates");
       }
-      
+
       const data = await response.json();
-      setRates(data.rates);
+      // v6 usa `conversion_rates`, v4 usa `rates`
+      setRates(data.conversion_rates ?? data.rates);
       setLastUpdated(new Date());
     } catch (error) {
       console.error("Error fetching exchange rates:", error);
